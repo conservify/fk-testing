@@ -11,6 +11,7 @@ import (
 )
 
 type DeviceLocation struct {
+	Fix         uint32
 	Time        uint32
 	Coordinates [3]float32
 }
@@ -22,6 +23,7 @@ type SensorReading struct {
 }
 
 type DataEntry struct {
+	Version  uint32
 	Location DeviceLocation
 	Reading  SensorReading
 }

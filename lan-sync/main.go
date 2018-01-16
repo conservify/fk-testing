@@ -95,7 +95,8 @@ func downloadDeviceFiles(deviceId string, dc *fkc.DeviceClient) {
 	for _, file := range fileReply.Files.Files {
 		if file.Size > 0 {
 			dir := fmt.Sprintf("data/%s", deviceId)
-			fileName := fmt.Sprintf("%s/%s_%d", dir, file.Name, file.Version)
+			stamp := time.Now().Format("20060102_150405")
+			fileName := fmt.Sprintf("%s/%s_%s_%d", dir, file.Name, stamp, file.Version)
 
 			err = os.MkdirAll(dir, 0777)
 			if err != nil {

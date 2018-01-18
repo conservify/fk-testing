@@ -2,71 +2,68 @@ package main
 
 import (
 	_ "bytes"
-	"encoding/binary"
 	"flag"
 	"fmt"
+	pb "github.com/fieldkit/data-protocol"
+	"github.com/golang/protobuf/proto"
 	"io"
+	"io/ioutil"
 	"log"
-	"os"
 )
-
-type DeviceLocation struct {
-	Fix         uint32
-	Time        uint32
-	Coordinates [3]float32
-}
-
-type SensorReading struct {
-	Time   uint32
-	Value  float32
-	Status uint32
-}
-
-type DataEntry struct {
-	Version  uint32
-	Location DeviceLocation
-	Reading  SensorReading
-}
 
 type DataFile struct {
 	Path string
 }
 
 func (df *DataFile) ReadData(dw DataWriter) {
-	file, err := os.Open(df.Path)
+	data, err := ioutil.ReadFile(df.Path)
 	if err != nil {
 		log.Fatal("Error while opening file", err)
 	}
 
-	defer file.Close()
+	buf := proto.NewBuffer(data[:])
 
 	for {
-		entry := DataEntry{}
-		err = binary.Read(file, binary.LittleEndian, &entry)
-		if err == io.EOF {
+		messageBytes, err := buf.DecodeRawBytes(true)
+		if err != nil {
+			if err == io.ErrUnexpectedEOF {
+				err = nil
+				break
+			}
+			return // nil, fmt.Errorf("Unable to read length %v", err)
+		}
+
+		messageBuffer := proto.NewBuffer(messageBytes[:])
+		record := new(pb.DataRecord)
+		err = messageBuffer.Unmarshal(record)
+		if err != nil {
+			log.Printf("Length: %v", len(messageBuffer.Bytes()))
+			// return nil, fmt.Errorf("Unable to Unmarshal %v", err)
 			return
 		}
-		dw.Write(df, &entry)
+
+		dw.Write(df, record)
 	}
 }
 
 type DataWriter interface {
-	Write(df *DataFile, entry *DataEntry)
+	Write(df *DataFile, record *pb.DataRecord)
 }
 
 type LogDataWriter struct {
 }
 
-func (ldw *LogDataWriter) Write(df *DataFile, entry *DataEntry) {
-	log.Printf("%s: %+v", df.Path, entry)
+func (ldw *LogDataWriter) Write(df *DataFile, record *pb.DataRecord) {
+	log.Printf("%s: %+v", df.Path, record)
 
 }
 
 type CsvDataWriter struct {
 }
 
-func (csv *CsvDataWriter) Write(df *DataFile, entry *DataEntry) {
-	fmt.Printf("%s,%d,%f,%f,%f,%d,%f\n", df.Path, entry.Location.Time, entry.Location.Coordinates[0], entry.Location.Coordinates[1], entry.Location.Coordinates[2], entry.Reading.Time, entry.Reading.Value)
+func (csv *CsvDataWriter) Write(df *DataFile, record *pb.DataRecord) {
+	entry := record.LoggedReading
+	fmt.Printf("%s,%d,%f,%f,%f,%d,%f\n", df.Path, entry.Location.Time, entry.Location.Longitude, entry.Location.Latitude, entry.Location.Altitude, entry.Reading.Time, entry.Reading.Value)
 }
 
 type options struct {

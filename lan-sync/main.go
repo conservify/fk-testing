@@ -53,13 +53,14 @@ func discoverDevicesOnLocalNetwork(d chan *DiscoveredDevice) {
 
 		defer serverConn.Close()
 
-		buf := make([]byte, 1024)
-
 		for {
+			buf := make([]byte, 32)
 			len, addr, err := serverConn.ReadFromUDP(buf)
 			if err != nil {
 				fmt.Println("Error: ", err)
 			}
+
+			// log.Printf("DeviceId: %v %d bytes %s", addr.IP.String(), len, hex.EncodeToString(buf[0:len]))
 
 			discovery := &DiscoveredDevice{
 				Address:  addr,

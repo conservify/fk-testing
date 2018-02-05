@@ -30,7 +30,7 @@ func (df *DataFile) ReadData(dw DataWriter) {
 				err = nil
 				break
 			}
-			return // nil, fmt.Errorf("Unable to read length %v", err)
+			return
 		}
 
 		messageBuffer := proto.NewBuffer(messageBytes[:])
@@ -38,7 +38,6 @@ func (df *DataFile) ReadData(dw DataWriter) {
 		err = messageBuffer.Unmarshal(record)
 		if err != nil {
 			log.Printf("Length: %v", len(messageBuffer.Bytes()))
-			// return nil, fmt.Errorf("Unable to Unmarshal %v", err)
 			return
 		}
 

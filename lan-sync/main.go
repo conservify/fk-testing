@@ -10,12 +10,33 @@ import (
 	"log"
 	"net"
 	"os"
+	"sync"
 	"time"
 )
 
 type DiscoveredDevice struct {
 	Address  *net.UDPAddr
 	DeviceId []byte
+	Time     time.Time
+}
+
+type Device struct {
+	Id            uint32
+	Busy          bool
+	LastQueryTime time.Time
+}
+
+type Devices struct {
+	Lock *sync.Mutex
+	ById map[string]*Device
+}
+
+func (d *Devices) markBusy(id string) {
+	d.ById[id].Busy = true
+}
+
+func (d *Devices) markAvailable(id string) {
+	d.ById[id].Busy = false
 }
 
 func discoverDevicesOnLocalNetwork(d chan *DiscoveredDevice) {
@@ -43,6 +64,7 @@ func discoverDevicesOnLocalNetwork(d chan *DiscoveredDevice) {
 			discovery := &DiscoveredDevice{
 				Address:  addr,
 				DeviceId: buf[0:len],
+				Time:     time.Now(),
 			}
 
 			d <- discovery
@@ -50,26 +72,29 @@ func discoverDevicesOnLocalNetwork(d chan *DiscoveredDevice) {
 	}
 }
 
-type Device struct {
-	Id uint32
+func minutesSince(t time.Time) float64 {
+	now := time.Now()
+	elapsed := now.Sub(t)
+	return elapsed.Minutes()
 }
 
-type Devices struct {
-	ById          map[string]*Device
-	LastQueryTime map[string]time.Time
-}
+func (d *Devices) shouldQuery(id string) bool {
+	if d.ById[id] == nil {
+		return true
+	}
 
-func (d *Devices) shouldQuery(ip string) bool {
-	if !d.LastQueryTime[ip].IsZero() {
-		now := time.Now()
-		elapsed := now.Sub(d.LastQueryTime[ip])
-		if elapsed.Minutes() < 5 {
+	device := d.ById[id]
+	if !device.LastQueryTime.IsZero() {
+		if minutesSince(device.LastQueryTime) < 5 {
 			return false
 		}
 	}
 
-	now := time.Now()
-	d.LastQueryTime[ip] = now
+	if !device.Busy {
+		now := time.Now()
+		device.LastQueryTime = now
+		return true
+	}
 
 	return true
 }
@@ -109,21 +134,21 @@ func downloadDeviceFiles(deviceId string, dc *fkc.DeviceClient) {
 
 			defer f.Close()
 
-			log.Printf("[%s] Downloading %v", deviceId, file)
+			log.Printf("[%s] Downloading %v (%s)", deviceId, file, fileName)
 
 			bar := pb.New(int(file.Size)).SetUnits(pb.U_BYTES)
 			bar.Start()
 
 			writer := io.MultiWriter(f, bar)
 
-			_, err = dc.DownloadFileToFile(file.Id, 0, writer, nil)
+			_, err = dc.DownloadFileToFile(file.Id, 65536*2, writer, nil)
+
 			bar.Set(int(file.Size))
 			bar.Finish()
 
 			if err != nil {
 				log.Printf("Error: %v", err)
 			} else {
-				log.Printf("[%s] Erasing %d", deviceId, file.Id)
 				dc.EraseFile(file.Id)
 				if err != nil {
 					log.Printf("Error: %v", err)
@@ -136,41 +161,46 @@ func downloadDeviceFiles(deviceId string, dc *fkc.DeviceClient) {
 func main() {
 	flag.Parse()
 
+	log.Printf("Starting...")
+
 	discoveries := make(chan *DiscoveredDevice)
 
 	devices := &Devices{
-		ById:          make(map[string]*Device),
-		LastQueryTime: make(map[string]time.Time),
+		Lock: &sync.Mutex{},
+		ById: make(map[string]*Device),
 	}
 
 	go discoverDevicesOnLocalNetwork(discoveries)
 
 	for discovered := range discoveries {
 		ip := discovered.Address.IP.String()
-		if devices.shouldQuery(ip) {
-			log.Printf("Querying %v...", discovered)
+		deviceId := hex.EncodeToString(discovered.DeviceId)
+		age := minutesSince(discovered.Time)
 
-			dc := &fkc.DeviceClient{
-				Address: ip,
-				Port:    54321,
+		if age < 1 {
+			if devices.shouldQuery(deviceId) {
+				dc := &fkc.DeviceClient{
+					Address: ip,
+					Port:    54321,
+				}
+
+				reply, err := dc.QueryCapabilities()
+				if err != nil {
+					log.Printf("Error: %v", err)
+					continue
+				}
+				if reply == nil || reply.Capabilities == nil {
+					log.Printf("Error: Bad reply")
+					continue
+				}
+
+				devices.addDevice(deviceId)
+				devices.markBusy(deviceId)
+				downloadDeviceFiles(deviceId, dc)
+				devices.markAvailable(deviceId)
+			} else {
+				log.Printf("%v %v", discovered.Address.IP.String(), deviceId)
 			}
-
-			reply, err := dc.QueryCapabilities()
-			if err != nil {
-				log.Printf("Error: %v", err)
-				continue
-			}
-
-			if reply == nil || reply.Capabilities == nil {
-				log.Printf("Bad reply")
-				continue
-			}
-
-			deviceId := hex.EncodeToString(reply.Capabilities.DeviceId)
-			devices.addDevice(deviceId)
-			downloadDeviceFiles(deviceId, dc)
-		} else {
-			log.Printf("Seen %v", discovered)
 		}
 	}
 }

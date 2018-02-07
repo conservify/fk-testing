@@ -64,6 +64,22 @@ type StatusUpdate struct {
 	IP      string
 }
 
+type SensorReading struct {
+	Time       uint32
+	SensorName string
+	SensorId   int32
+	Value      float64
+}
+
+type Location struct {
+	Time       uint32
+	Satellites uint32
+	HDOP       uint32
+	Longitude  float64
+	Latitude   float64
+	Altitude   float64
+}
+
 func (p *LogFileParser) ProcessEntry(lfe *LogFileEntry) error {
 	schedulerRegex := regexp.MustCompile("(.+): run task \\(again = .+\\)")
 	v := schedulerRegex.FindAllStringSubmatch(lfe.Message, -1)
@@ -74,11 +90,72 @@ func (p *LogFileParser) ProcessEntry(lfe *LogFileEntry) error {
 		}
 		fmt.Printf("Scheduler: %v\n", parsed)
 	}
-	gpsRegex := regexp.MustCompile("Sats\\((\\d+)\\) Hdop\\((\\d+)\\) Loc\\(([-\\d.]+), ([-\\d.]+)\\) Alt\\(([-\\d.]+)\\)")
+
+	gpsRegex := regexp.MustCompile("Time\\((\\d+)\\) Sats\\((\\d+)\\) Hdop\\((\\d+)\\) Loc\\(([-\\d.]+), ([-\\d.]+)\\, ([-\\d.]+)\\)")
 	v = gpsRegex.FindAllStringSubmatch(lfe.Message, -1)
 	if v != nil {
-		fmt.Printf("GPS: %v\n", v[0])
+		time, err := strconv.Atoi(v[0][1])
+		if err != nil {
+			return fmt.Errorf("Unable to parse: %v", err)
+		}
+		satellites, err := strconv.Atoi(v[0][2])
+		if err != nil {
+			return fmt.Errorf("Unable to parse: %v", err)
+		}
+		hdop, err := strconv.Atoi(v[0][3])
+		if err != nil {
+			return fmt.Errorf("Unable to parse: %v", err)
+		}
+		longitude, err := strconv.ParseFloat(v[0][4], 32)
+		if err != nil {
+			return fmt.Errorf("Unable to parse: %v", err)
+		}
+		latitude, err := strconv.ParseFloat(v[0][5], 32)
+		if err != nil {
+			return fmt.Errorf("Unable to parse: %v", err)
+		}
+		altitude, err := strconv.ParseFloat(v[0][6], 32)
+		if err != nil {
+			return fmt.Errorf("Unable to parse: %v", err)
+		}
+		location := Location{
+			Time:       uint32(time),
+			Satellites: uint32(satellites),
+			HDOP:       uint32(hdop),
+			Longitude:  longitude,
+			Latitude:   latitude,
+			Altitude:   altitude,
+		}
+		fmt.Printf("GPS: %v\n", location)
 	}
+
+	readingRegex := regexp.MustCompile("Appended reading \\(\\d+ bytes\\) \\((\\d+), (\\d+), '(.+)' = (\\S+)\\)")
+	v = readingRegex.FindAllStringSubmatch(lfe.Message, -1)
+	if v != nil {
+		time, err := strconv.Atoi(v[0][1])
+		if err != nil {
+			return fmt.Errorf("Unable to parse reading time: %v", err)
+		}
+		sensorId, err := strconv.Atoi(v[0][2])
+		if err != nil {
+			return fmt.Errorf("Unable to parse reading value: %v", err)
+		}
+		sensorName := v[0][3]
+		value, err := strconv.ParseFloat(v[0][4], 32)
+		if err != nil {
+			return fmt.Errorf("Unable to parse reading value: %v", err)
+		}
+
+		reading := SensorReading{
+			Time:       uint32(time),
+			SensorId:   int32(sensorId),
+			SensorName: sensorName,
+			Value:      value,
+		}
+
+		fmt.Printf("Reading: %v\n", reading)
+	}
+
 	statusRegex := regexp.MustCompile("Status \\(([\\d.]+)% / ([\\d.]+)mv\\) \\((\\d+) free\\) \\((\\S+)\\)")
 	v = statusRegex.FindAllStringSubmatch(lfe.Message, -1)
 	if v != nil {

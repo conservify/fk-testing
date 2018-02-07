@@ -4,7 +4,7 @@ import (
 	"encoding/hex"
 	"flag"
 	"fmt"
-	fkc "github.com/fieldkit/app-protocol/device"
+	fkc "github.com/fieldkit/app-protocol/fkdevice"
 	"gopkg.in/cheggaaa/pb.v1"
 	"io"
 	"log"

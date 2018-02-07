@@ -142,7 +142,9 @@ func downloadDeviceFiles(deviceId string, dc *fkc.DeviceClient) {
 
 			writer := io.MultiWriter(f, bar)
 
-			_, err = dc.DownloadFileToFile(file.Id, 65536*2, writer, nil)
+			token := []byte{}
+
+			_, err = dc.DownloadFileToWriter(file.Id, 65536*1, token, writer)
 
 			bar.Set(int(file.Size))
 			bar.Finish()

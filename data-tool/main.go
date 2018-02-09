@@ -112,6 +112,10 @@ func (ldw *LogDataWriter) Write(df *DataFile, record *pb.DataRecord) {
 		}
 		reading := record.LoggedReading.Reading
 		if reading != nil {
+			if record.LoggedReading.Location == nil || record.LoggedReading.Location.Fix != 1 {
+				log.Printf("Skip unfixed reading")
+				return
+			}
 			ldw.readings[reading.Sensor] = reading.Value
 			ldw.readingsSeen += 1
 

@@ -9,5 +9,7 @@ build/fk-log-analyzer: log-analyzer/*.go
 build/fk-data-tool: data-tool/*.go
 	go build -o build/fk-data-tool data-tool/*.go
 
+install: all
+
 clean:
 	rm -rf build

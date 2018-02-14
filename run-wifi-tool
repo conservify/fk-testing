@@ -1,0 +1,11 @@
+#!/bin/bash
+
+DEVICE=$1
+
+set -xe
+
+make
+
+sudo ifconfig $DEVICE up && sudo ./build/fk-wifi-tool --device $DEVICE
+
+sudo chown $USER. wpa_*.conf

@@ -5,11 +5,9 @@ import (
 	"flag"
 	"fmt"
 	fkc "github.com/fieldkit/app-protocol/fkdevice"
-	"gopkg.in/cheggaaa/pb.v1"
-	"io"
+	fktestutils "github.com/fieldkit/testing/utilities"
 	"log"
 	"net"
-	"os"
 	"sync"
 	"time"
 )
@@ -106,61 +104,6 @@ func (d *Devices) addDevice(id string) {
 	}
 }
 
-func downloadDeviceFiles(deviceId string, dc *fkc.DeviceClient) {
-	fileReply, err := dc.QueryFiles()
-	if err != nil {
-		log.Printf("Error: %v", err)
-		return
-	}
-
-	if fileReply == nil || fileReply.Files == nil || fileReply.Files.Files == nil {
-		log.Printf("Error, no files in reply")
-		return
-	}
-
-	for _, file := range fileReply.Files.Files {
-		if file.Size > 0 {
-			dir := fmt.Sprintf("data/%s", deviceId)
-			stamp := time.Now().Format("20060102_150405")
-			fileName := fmt.Sprintf("%s/%s_%s_%d", dir, file.Name, stamp, file.Version)
-
-			err = os.MkdirAll(dir, 0777)
-			if err != nil {
-				log.Fatalf("Unable to create %s (%v)", dir, err)
-			}
-			f, err := os.OpenFile(fileName, os.O_CREATE|os.O_WRONLY|os.O_TRUNC, 0600)
-			if err != nil {
-				log.Fatalf("Unable to open %s (%v)", fileName, err)
-			}
-
-			defer f.Close()
-
-			log.Printf("[%s] Downloading %v (%s)", deviceId, file, fileName)
-
-			bar := pb.New(int(file.Size)).SetUnits(pb.U_BYTES)
-			bar.Start()
-
-			writer := io.MultiWriter(f, bar)
-
-			token := []byte{}
-
-			_, err = dc.DownloadFileToWriter(file.Id, 65536*1, token, writer)
-
-			bar.Set(int(file.Size))
-			bar.Finish()
-
-			if err != nil {
-				log.Printf("Error: %v", err)
-			} else {
-				dc.EraseFile(file.Id)
-				if err != nil {
-					log.Printf("Error: %v", err)
-				}
-			}
-		}
-	}
-}
-
 func main() {
 	flag.Parse()
 
@@ -199,7 +142,7 @@ func main() {
 
 				devices.addDevice(deviceId)
 				devices.markBusy(deviceId)
-				downloadDeviceFiles(deviceId, dc)
+				fktestutils.DownloadDeviceFiles(deviceId, dc)
 				devices.markAvailable(deviceId)
 			} else {
 				log.Printf("%v %v", discovered.Address.IP.String(), deviceId)

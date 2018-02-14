@@ -1,0 +1,6 @@
+#!/bin/bash
+
+touch /tmp/flashing-core
+~/tools/bin/flasher --port ~/devices/core --binary fk-core.bin 
+pkill -f "flasher.+core"
+rm /tmp/flashing-core

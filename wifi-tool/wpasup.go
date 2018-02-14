@@ -3,7 +3,7 @@ package main
 import (
 	"bufio"
 	"fmt"
-	"log"
+	_ "log"
 	"os"
 	"os/exec"
 	"regexp"
@@ -22,7 +22,6 @@ func (wsr *WpaSupplicantRunner) Line(text string) {
 	ssidM := ssidRe.FindStringSubmatch(text)
 	if ssidM != nil {
 		wsr.ActiveSsid = ssidM[0]
-		log.Printf("%v", wsr.ActiveSsid)
 	}
 	if strings.Contains(text, "CTRL-EVENT-CONNECTED") {
 	}

@@ -60,7 +60,7 @@ func (wsr *WpaSupplicantRunner) writeWpaSupplicantConfig() error {
 
 	defer w.Flush()
 
-	w.WriteString("ctrl_interface=DIR=/run/wpa_supplicant GROUP=adm\n")
+	w.WriteString("ctrl_interface=DIR=/run/wpa_supplicant_fk GROUP=adm\n")
 	w.WriteString("update_config=1\n")
 
 	for _, network := range wsr.Networks {
@@ -98,7 +98,7 @@ func NewWpaCliRunner(device string) (wcr *WpaCliRunner, err error) {
 }
 
 func (wcr *WpaCliRunner) Check() (state *CurrentWifiState, err error) {
-	c := exec.Command("wpa_cli", "-i", wcr.Device, "status")
+	c := exec.Command("wpa_cli", "-p", "/run/wpa_supplicant_fk", "-i", wcr.Device, "status")
 	bytes, err := c.Output()
 	if err != nil {
 		return nil, err

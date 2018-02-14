@@ -10,7 +10,7 @@ import (
 	"time"
 )
 
-func DownloadDeviceFiles(deviceId string, dc *fkc.DeviceClient) error {
+func DownloadDeviceFiles(dataDirectory string, deviceId string, dc *fkc.DeviceClient) error {
 	fileReply, err := dc.QueryFiles()
 	if err != nil {
 		return fmt.Errorf("Error: %v", err)
@@ -22,7 +22,7 @@ func DownloadDeviceFiles(deviceId string, dc *fkc.DeviceClient) error {
 
 	for _, file := range fileReply.Files.Files {
 		if file.Size > 0 {
-			dir := fmt.Sprintf("data/%s", deviceId)
+			dir := fmt.Sprintf("%s/%s", dataDirectory, deviceId)
 			stamp := time.Now().Format("20060102_150405")
 			fileName := fmt.Sprintf("%s/%s_%s_%d", dir, file.Name, stamp, file.Version)
 

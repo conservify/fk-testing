@@ -6,6 +6,7 @@ set -xe
 
 make
 
-sudo ifconfig $DEVICE up && sudo ./build/fk-wifi-tool --device $DEVICE
-
+pushd wifi-tool
+sudo ifconfig $DEVICE up && sudo ../build/fk-wifi-tool --device $DEVICE --data-directory ~/fieldkit/data
 sudo chown $USER. wpa_*.conf
+popd

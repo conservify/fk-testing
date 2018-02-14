@@ -142,7 +142,7 @@ func main() {
 
 				devices.addDevice(deviceId)
 				devices.markBusy(deviceId)
-				fktestutils.DownloadDeviceFiles(deviceId, dc)
+				fktestutils.DownloadDeviceFiles("data", deviceId, dc)
 				devices.markAvailable(deviceId)
 			} else {
 				log.Printf("%v %v", discovered.Address.IP.String(), deviceId)

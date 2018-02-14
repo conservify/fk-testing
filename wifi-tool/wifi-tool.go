@@ -14,7 +14,8 @@ import (
 )
 
 type options struct {
-	Device string
+	Device        string
+	DataDirectory string
 }
 
 type StatusEvent struct {
@@ -23,7 +24,7 @@ type StatusEvent struct {
 	Bound     bool
 }
 
-func ConnectAndDownload(ip string) error {
+func ConnectAndDownload(ip string, o *options) error {
 	dc := &fkc.DeviceClient{
 		Address: ip,
 		Port:    54321,
@@ -36,13 +37,14 @@ func ConnectAndDownload(ip string) error {
 
 	deviceId := hex.EncodeToString(caps.Capabilities.DeviceId)
 
-	return fktestutils.DownloadDeviceFiles(deviceId, dc)
+	return fktestutils.DownloadDeviceFiles(o.DataDirectory, deviceId, dc)
 }
 
 func main() {
 	o := options{}
 
 	flag.StringVar(&o.Device, "device", "", "device to use")
+	flag.StringVar(&o.DataDirectory, "data-directory", "./data", "data directory to use")
 
 	flag.Parse()
 
@@ -111,7 +113,7 @@ func main() {
 						for retries := 3; retries >= 0; retries-- {
 							time.Sleep(2 * time.Second)
 
-							err = ConnectAndDownload("192.168.1.1")
+							err = ConnectAndDownload("192.168.1.1", &o)
 							if err != nil {
 								log.Printf("%v", err)
 							} else {

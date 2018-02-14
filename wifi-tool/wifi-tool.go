@@ -32,7 +32,7 @@ func ConnectAndDownload(ip string, o *options) error {
 
 	caps, err := dc.QueryCapabilities()
 	if err != nil {
-		return err
+		return fmt.Errorf("Unable to get capabilities")
 	}
 
 	deviceId := hex.EncodeToString(caps.Capabilities.DeviceId)
@@ -115,7 +115,7 @@ func main() {
 
 							err = ConnectAndDownload("192.168.1.1", &o)
 							if err != nil {
-								log.Printf("%v", err)
+								log.Printf("Error connecting and downloading: %v", err)
 							} else {
 								break
 							}

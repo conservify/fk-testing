@@ -1,14 +1,7 @@
 package main
 
 import (
-	"bytes"
-	"encoding/hex"
-	"encoding/json"
 	"flag"
-	"fmt"
-	"net/http"
-	// fktesting "github.com/fieldkit/cloud/server/api/tool"
-	"github.com/fieldkit/cloud/server/backend/ingestion"
 	pb "github.com/fieldkit/data-protocol"
 	"github.com/golang/protobuf/proto"
 	"io"
@@ -48,116 +41,30 @@ func (df *DataFile) ReadData(dw DataWriter) {
 			return
 		}
 
-		dw.Write(df, record)
+		dw.Write(df, record, messageBytes)
 	}
 }
 
 type DataWriter interface {
-	Write(df *DataFile, record *pb.DataRecord)
+	Write(df *DataFile, record *pb.DataRecord, raw []byte) error
+	Finished() error
 }
 
-type LogDataWriter struct {
-	options         *options
-	deviceId        string
-	location        *pb.DeviceLocation
-	time            int64
-	numberOfSensors uint32
-	readingsSeen    uint32
-	sensors         map[uint32]*pb.SensorInfo
-	readings        map[uint32]float32
+type NullWriter struct {
 }
 
-func (ldw *LogDataWriter) CreateFieldKitMessage() *ingestion.HttpJsonMessage {
-	values := make(map[string]string)
-	for key, value := range ldw.readings {
-		values[ldw.sensors[key].Name] = fmt.Sprintf("%f", value)
-	}
-
-	return &ingestion.HttpJsonMessage{
-		Location: []float64{float64(ldw.location.Longitude), float64(ldw.location.Latitude), float64(ldw.location.Altitude)},
-		Time:     ldw.time,
-		Device:   ldw.deviceId,
-		Stream:   "",
-		Values:   values,
-	}
+func (w *NullWriter) Write(df *DataFile, record *pb.DataRecord, raw []byte) error {
+	return nil
 }
 
-func mapOfFloatsToMapOfStrings(original map[string]float32) map[string]string {
-	r := make(map[string]string)
-	for key, value := range original {
-		r[key] = fmt.Sprintf("%f", value)
-	}
-	return r
-}
-
-func (ldw *LogDataWriter) Write(df *DataFile, record *pb.DataRecord) {
-	if record.Metadata != nil {
-		if ldw.deviceId == "" {
-			ldw.deviceId = hex.EncodeToString(record.Metadata.DeviceId)
-		}
-		if record.Metadata.Sensors != nil {
-			if ldw.numberOfSensors == 0 {
-				for _, sensor := range record.Metadata.Sensors {
-					ldw.sensors[sensor.Sensor] = sensor
-					ldw.numberOfSensors += 1
-				}
-				log.Printf("Found %d sensors", ldw.numberOfSensors)
-			}
-		}
-
-	}
-	if record.LoggedReading != nil {
-		if record.LoggedReading.Location != nil {
-			ldw.location = record.LoggedReading.Location
-		}
-		reading := record.LoggedReading.Reading
-		if reading != nil {
-			if record.LoggedReading.Location == nil || record.LoggedReading.Location.Fix != 1 {
-				log.Printf("Skip unfixed reading")
-				return
-			}
-			ldw.readings[reading.Sensor] = reading.Value
-			ldw.readingsSeen += 1
-
-			if ldw.readingsSeen == ldw.numberOfSensors {
-				ldw.time = int64(record.LoggedReading.Reading.Time)
-
-				if ldw.location != nil {
-					b, err := json.Marshal(ldw.CreateFieldKitMessage())
-					if err != nil {
-						log.Fatalf("Error %v", err)
-					}
-
-					if true {
-						body := bytes.NewBufferString(string(b))
-						url := fmt.Sprintf("%s://%s/messages/ingestion", ldw.options.Scheme, ldw.options.Host)
-						url += "?token=" + "IGNORED"
-						_, err = http.Post(url, ingestion.HttpProviderJsonContentType, body)
-						if err != nil {
-							log.Fatalf("%s %s", url, err)
-						}
-					}
-
-					fmt.Println(string(b))
-				}
-
-				ldw.readingsSeen = 0
-			}
-		}
-	}
-
-}
-
-type CsvDataWriter struct {
-}
-
-func (csv *CsvDataWriter) Write(df *DataFile, record *pb.DataRecord) {
-	entry := record.LoggedReading
-	fmt.Printf("%s,%d,%f,%f,%f,%d,%f\n", df.Path, entry.Location.Time, entry.Location.Longitude, entry.Location.Latitude, entry.Location.Altitude, entry.Reading.Time, entry.Reading.Value)
+func (w *NullWriter) Finished() error {
+	return nil
 }
 
 type options struct {
-	Csv bool
+	Csv        bool
+	PostJson   bool
+	PostStream bool
 
 	Project    string
 	Expedition string
@@ -172,6 +79,8 @@ func main() {
 	o := options{}
 
 	flag.BoolVar(&o.Csv, "csv", false, "write csv")
+	flag.BoolVar(&o.PostJson, "post-json", false, "interpret and post json")
+	flag.BoolVar(&o.PostStream, "post-stream", false, "post binary stream directly")
 
 	flag.StringVar(&o.Project, "project", "www", "project")
 	flag.StringVar(&o.DeviceName, "device-name", "weather-proxy", "device name")
@@ -186,13 +95,21 @@ func main() {
 
 	if o.Csv {
 		writer = &CsvDataWriter{}
-	} else {
-		writer = &LogDataWriter{
+	} else if o.PostStream {
+		writer = &StreamingWriter{
+			options: &o,
+		}
+	} else if o.PostJson {
+		writer = &DataBinaryToPostWriter{
 			options:  &o,
 			sensors:  make(map[uint32]*pb.SensorInfo),
 			readings: make(map[uint32]float32),
 		}
+	} else {
+		writer = &NullWriter{}
 	}
+
+	log.Printf("Using %T", writer)
 
 	for _, path := range flag.Args() {
 		log.Printf("Opening %s", path)
@@ -203,4 +120,6 @@ func main() {
 
 		df.ReadData(writer)
 	}
+
+	writer.Finished()
 }

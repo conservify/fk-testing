@@ -16,6 +16,12 @@ build/fk-wifi-tool: wifi-tool/*.go
 	$(GO) build -o build/fk-wifi-tool wifi-tool/*.go
 
 install: all
+	cp build/fk-lan-sync $(INSTALLDIR)
+	cp build/fk-log-analyzer $(INSTALLDIR)
+	cp build/fk-data-tool $(INSTALLDIR)
+	cp build/fk-wifi-tool $(INSTALLDIR)
 
 clean:
 	rm -rf build
+
+veryclean:

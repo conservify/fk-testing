@@ -1,0 +1,3 @@
+#!/bin/bash
+
+scp build/fk-core.bin 192.168.0.111: && ssh 192.168.0.111 "flasher --binary fk-core.bin --port devices/core"

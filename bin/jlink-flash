@@ -1,0 +1,24 @@
+#!/bin/bash
+
+binary=$1
+
+if [ -z $binary ] || [ ! -f $binary ]; then
+	echo "Usage: jlink-flash.sh <binary-file>"
+	exit 2
+fi
+
+temp=$(mktemp)
+
+cat << EOF > $temp
+connect
+loadfile $binary 0x00002000
+r
+g
+q
+EOF
+
+PATH=~/tools/JLink_Linux_V618c_x86_64:$PATH
+
+JLinkExe -if SWD -device ATSAMD21G18 -speed 4000 -autoconnect 1 -commanderscript $temp
+
+rm -f $temp

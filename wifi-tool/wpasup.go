@@ -79,6 +79,7 @@ func (wsr *WpaSupplicantRunner) writeWpaSupplicantConfig() error {
 }
 
 type WpaCliRunner struct {
+	Device string
 }
 
 type CurrentWifiState struct {
@@ -88,14 +89,16 @@ type CurrentWifiState struct {
 	Connected bool
 }
 
-func NewWpaCliRunner() (wcr *WpaCliRunner, err error) {
-	wcr = &WpaCliRunner{}
+func NewWpaCliRunner(device string) (wcr *WpaCliRunner, err error) {
+	wcr = &WpaCliRunner{
+		Device: device,
+	}
 
 	return
 }
 
 func (wcr *WpaCliRunner) Check() (state *CurrentWifiState, err error) {
-	c := exec.Command("wpa_cli", "status")
+	c := exec.Command("wpa_cli", "-i", wcr.Device, "status")
 	bytes, err := c.Output()
 	if err != nil {
 		return nil, err

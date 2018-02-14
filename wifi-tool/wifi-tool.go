@@ -86,7 +86,7 @@ func main() {
 			log.Fatalf("Error: %v", err)
 		}
 
-		wcr, err := NewWpaCliRunner()
+		wcr, err := NewWpaCliRunner(o.Device)
 		if err != nil {
 			log.Fatalf("Error: %v", err)
 		}

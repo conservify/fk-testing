@@ -100,7 +100,7 @@ func main() {
 		log.Fatalf("Error: %v", err)
 	}
 
-	scan.AddNetwork("FK-HELP", "", 10)
+	scan.AddNetwork("FK-AASjCwAcxsk", "", 10)
 
 	networks := scan.ConfiguredNetworks()
 	if len(networks) > 0 {

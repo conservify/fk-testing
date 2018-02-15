@@ -7,6 +7,6 @@ set -xe
 make
 
 pushd wifi-tool
-sudo ifconfig $DEVICE up && sudo ../build/fk-wifi-tool --device $DEVICE --data-directory ~/fieldkit/data
-sudo chown $USER. wpa_*.conf
+ifconfig $DEVICE up && ../build/fk-wifi-tool --device $DEVICE --data-directory ~/fieldkit/data
+chown $USER. wpa_*.conf
 popd

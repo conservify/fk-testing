@@ -10,14 +10,15 @@ import (
 	"time"
 )
 
-func DownloadDeviceFiles(dataDirectory string, deviceId string, dc *fkc.DeviceClient) error {
+func DownloadDeviceFiles(dataDirectory string, deviceId string, dc *fkc.DeviceClient) (files []string, err error) {
+	files = make([]string, 0)
 	fileReply, err := dc.QueryFiles()
 	if err != nil {
-		return fmt.Errorf("Error: %v", err)
+		return files, fmt.Errorf("Error: %v", err)
 	}
 
 	if fileReply == nil || fileReply.Files == nil || fileReply.Files.Files == nil {
-		return fmt.Errorf("Error, no files in reply")
+		return files, fmt.Errorf("Error, no files in reply")
 	}
 
 	for _, file := range fileReply.Files.Files {
@@ -28,12 +29,15 @@ func DownloadDeviceFiles(dataDirectory string, deviceId string, dc *fkc.DeviceCl
 
 			err = os.MkdirAll(dir, 0777)
 			if err != nil {
-				return fmt.Errorf("Unable to create %s (%v)", dir, err)
+				return files, fmt.Errorf("Unable to create %s (%v)", dir, err)
 			}
+
 			f, err := os.OpenFile(fileName, os.O_CREATE|os.O_WRONLY|os.O_TRUNC, 0600)
 			if err != nil {
-				return fmt.Errorf("Unable to open %s (%v)", fileName, err)
+				return files, fmt.Errorf("Unable to open %s (%v)", fileName, err)
 			}
+
+			files = append(files, fileName)
 
 			defer f.Close()
 
@@ -52,15 +56,15 @@ func DownloadDeviceFiles(dataDirectory string, deviceId string, dc *fkc.DeviceCl
 			bar.Finish()
 
 			if err != nil {
-				return fmt.Errorf("Error: %v", err)
+				return files, fmt.Errorf("Error: %v", err)
 			} else {
 				dc.EraseFile(file.Id)
 				if err != nil {
-					return fmt.Errorf("Error: %v", err)
+					return files, fmt.Errorf("Error: %v", err)
 				}
 			}
 		}
 	}
 
-	return nil
+	return files, nil
 }

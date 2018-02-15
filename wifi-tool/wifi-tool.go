@@ -9,13 +9,36 @@ import (
 	"log"
 	"os"
 	"os/signal"
+	"strconv"
 	"syscall"
 	"time"
 )
 
+type FileOwner struct {
+	Uid int
+	Gid int
+}
+
+func LookupFileOwner() *FileOwner {
+	uid, _ := strconv.Atoi(os.Getenv("SUDO_UID"))
+	gid, _ := strconv.Atoi(os.Getenv("SUDO_GID"))
+	if uid == 0 || gid == 0 {
+		return nil
+	}
+
+	log.Printf("Creating files as %d:%d", uid, gid)
+	return &FileOwner{
+		Uid: uid,
+		Gid: gid,
+	}
+
+}
+
 type options struct {
 	Device        string
 	DataDirectory string
+
+	fileOwner *FileOwner
 }
 
 type StatusEvent struct {
@@ -37,7 +60,18 @@ func ConnectAndDownload(ip string, o *options) error {
 
 	deviceId := hex.EncodeToString(caps.Capabilities.DeviceId)
 
-	return fktestutils.DownloadDeviceFiles(o.DataDirectory, deviceId, dc)
+	files, err := fktestutils.DownloadDeviceFiles(o.DataDirectory, deviceId, dc)
+	if err != nil {
+		return fmt.Errorf("Unable to download capabilities")
+	}
+
+	if o.fileOwner != nil {
+		for _, file := range files {
+			os.Chown(file, o.fileOwner.Uid, o.fileOwner.Gid)
+		}
+	}
+
+	return nil
 }
 
 func main() {
@@ -47,6 +81,8 @@ func main() {
 	flag.StringVar(&o.DataDirectory, "data-directory", "./data", "data directory to use")
 
 	flag.Parse()
+
+	o.fileOwner = LookupFileOwner()
 
 	if o.Device == "" {
 		os.Exit(2)

@@ -59,6 +59,7 @@ func (w *StreamingWriter) Finished() error {
 	all := w.buf.Bytes()
 
 	url := fmt.Sprintf("http://%s/messages/ingestion/stream", w.options.Host)
+
 	log.Printf("Connecting to %s and uploading %d bytes", url, len(all))
 
 	c, err := http.Post(url, "application/vnd.fk.data+binary", bytes.NewBuffer(all))
@@ -67,5 +68,6 @@ func (w *StreamingWriter) Finished() error {
 	}
 
 	w.response = c
+
 	return nil
 }

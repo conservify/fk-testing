@@ -10,6 +10,7 @@ import (
 	"os"
 	"os/signal"
 	"strconv"
+	"sync"
 	"syscall"
 	"time"
 )
@@ -31,12 +32,15 @@ func LookupFileOwner() *FileOwner {
 		Uid: uid,
 		Gid: gid,
 	}
-
 }
 
 type options struct {
 	Device        string
 	DataDirectory string
+	StartWpa      bool
+	WpaSocket     string
+	Network       string
+	DeviceAddress string
 
 	fileOwner *FileOwner
 }
@@ -79,6 +83,10 @@ func main() {
 
 	flag.StringVar(&o.Device, "device", "", "device to use")
 	flag.StringVar(&o.DataDirectory, "data-directory", "./data", "data directory to use")
+	flag.StringVar(&o.WpaSocket, "wpa-socket", "", "wpa socket to use")
+	flag.StringVar(&o.Network, "network", "", "network")
+	flag.StringVar(&o.DeviceAddress, "device-address", "192.168.1.1", "network")
+	flag.BoolVar(&o.StartWpa, "start-wpa", false, "start wpa ourselves")
 
 	flag.Parse()
 
@@ -100,36 +108,50 @@ func main() {
 		log.Fatalf("Error: %v", err)
 	}
 
-	scan.AddNetwork("FK-AASjCwAcxsk", "", 10)
+	scan.AddNetwork(o.Network, "", 10)
 
 	networks := scan.ConfiguredNetworks()
 	if len(networks) > 0 {
 		c := make(chan os.Signal, 1)
+
+		var wg sync.WaitGroup
+
+		wg.Add(1)
+
 		signal.Notify(c, syscall.SIGINT)
 		go func() {
 			for sig := range c {
 				fmt.Printf("\nSignal! %s\n", sig)
+				wg.Done()
 			}
 		}()
 
-		wsr, err := NewWpaSupplicantRunner(o.Device, networks)
+		waiting := make([]Waitable, 0)
+
+		if o.StartWpa {
+			wsr, err := NewWpaSupplicantRunner(o.Device, networks)
+			if err != nil {
+				log.Fatalf("Error: %v", err)
+			}
+
+			dcr, err := NewDhcpClientRunner(o.Device)
+			if err != nil {
+				log.Fatalf("Error: %v", err)
+			}
+
+			wsr.Start()
+
+			dcr.Start()
+
+			waiting = append(waiting, wsr)
+			waiting = append(waiting, dcr)
+
+		}
+
+		wcr, err := NewWpaCliRunner(o.Device, o.WpaSocket)
 		if err != nil {
 			log.Fatalf("Error: %v", err)
 		}
-
-		dcr, err := NewDhcpClientRunner(o.Device)
-		if err != nil {
-			log.Fatalf("Error: %v", err)
-		}
-
-		wcr, err := NewWpaCliRunner(o.Device)
-		if err != nil {
-			log.Fatalf("Error: %v", err)
-		}
-
-		wsr.Start()
-
-		dcr.Start()
 
 		log.Printf("Waiting")
 
@@ -149,7 +171,7 @@ func main() {
 						for retries := 3; retries >= 0; retries-- {
 							time.Sleep(2 * time.Second)
 
-							err = ConnectAndDownload("192.168.1.1", &o)
+							err = ConnectAndDownload(o.DeviceAddress, &o)
 							if err != nil {
 								log.Printf("Error connecting and downloading: %v", err)
 							} else {
@@ -164,9 +186,13 @@ func main() {
 			}
 		}()
 
-		wsr.Wait()
+		if !o.StartWpa {
+			wg.Wait()
+		}
 
-		dcr.Wait()
+		for _, w := range waiting {
+			w.Wait()
+		}
 
 		log.Printf("Done")
 

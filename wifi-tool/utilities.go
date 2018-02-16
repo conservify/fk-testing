@@ -16,6 +16,10 @@ type BackgroundProcessCallback interface {
 	Line(text string)
 }
 
+type Waitable interface {
+	Wait() error
+}
+
 func NewBackgroundProcess(prefix string, line []string, cb BackgroundProcessCallback) (bp *BackgroundProcess, err error) {
 	c := exec.Command(line[0], line[1:]...)
 	if false {

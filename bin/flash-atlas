@@ -1,0 +1,6 @@
+#!/bin/bash
+
+touch /tmp/flashing-atlas
+~/tools/bin/flasher --port ~/devices/atlas --binary fk-atlas-module.bin
+pkill -f "flasher.+atlas"
+rm /tmp/flashing-atlas

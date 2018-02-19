@@ -1,0 +1,6 @@
+#!/bin/bash
+
+pushd ~/fieldkit/atlas
+make
+scp build/fk-atlas-module.bin atlas-pi: && ssh atlas-pi "flasher --binary fk-atlas-module.bin --port ~/devices/atlas"
+popd

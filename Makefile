@@ -1,27 +1,31 @@
 GOARCH ?= amd64
 GO ?= env GOOS=linux GOARCH=$(GOARCH) go
+BUILD ?= build
 
-all: build/fk-lan-sync build/fk-log-analyzer build/fk-data-tool build/fk-wifi-tool
+all: $(BUILD)/fk-lan-sync $(BUILD)/fk-log-analyzer $(BUILD)/fk-data-tool $(BUILD)/fk-wifi-tool
 
-build/fk-lan-sync: lan-sync/*.go
-	$(GO) build -o build/fk-lan-sync lan-sync/*.go
+$(BUILD):
+	mkdir -p $(BUILD)
 
-build/fk-log-analyzer: log-analyzer/*.go
-	$(GO) build -o build/fk-log-analyzer log-analyzer/*.go
+$(BUILD)/fk-lan-sync: lan-sync/*.go
+	$(GO) build -o $(BUILD)/fk-lan-sync lan-sync/*.go
 
-build/fk-data-tool: data-tool/*.go
-	$(GO) build -o build/fk-data-tool data-tool/*.go
+$(BUILD)/fk-log-analyzer: log-analyzer/*.go
+	$(GO) build -o $(BUILD)/fk-log-analyzer log-analyzer/*.go
 
-build/fk-wifi-tool: wifi-tool/*.go
-	$(GO) build -o build/fk-wifi-tool wifi-tool/*.go
+$(BUILD)/fk-data-tool: data-tool/*.go
+	$(GO) build -o $(BUILD)/fk-data-tool data-tool/*.go
+
+$(BUILD)/fk-wifi-tool: wifi-tool/*.go
+	$(GO) build -o $(BUILD)/fk-wifi-tool wifi-tool/*.go
 
 install: all
-	cp build/fk-lan-sync $(INSTALLDIR)
-	cp build/fk-log-analyzer $(INSTALLDIR)
-	cp build/fk-data-tool $(INSTALLDIR)
-	cp build/fk-wifi-tool $(INSTALLDIR)
+	cp $(BUILD)/fk-lan-sync $(INSTALLDIR)
+	cp $(BUILD)/fk-log-analyzer $(INSTALLDIR)
+	cp $(BUILD)/fk-data-tool $(INSTALLDIR)
+	cp $(BUILD)/fk-wifi-tool $(INSTALLDIR)
 
 clean:
-	rm -rf build
+	rm -rf $(BUILD)
 
 veryclean:

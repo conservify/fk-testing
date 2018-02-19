@@ -1,3 +1,0 @@
-#!/bin/bash
-
-scp build/fk-atlas-module.bin 192.168.0.111: && ssh 192.168.0.111 "flasher --binary fk-atlas-module.bin --port devices/module"

@@ -2,5 +2,5 @@
 
 pushd ~/fieldkit/weather
 make
-scp build/fk-weather-module.bin weather-pi: && ssh weather-pi "tools/bin/flasher --binary fk-weather-module.bin --port ~/devices/weather"
+scp build/fk-weather-module.bin weather-pi: && ssh weather-pi "./flash-weather"
 popd

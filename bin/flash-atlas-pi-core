@@ -4,6 +4,6 @@ pushd ~/fieldkit/firmware-common
 mkdir -p build
 pushd build
 cmake -DDEBUG_UART_FALLBACK=OFF ../ && make
-scp fk-core.bin atlas-pi: && ssh atlas-pi "tools/bin/flasher --binary fk-core.bin --port ~/devices/core"
+scp fk-core.bin atlas-pi: && ssh atlas-pi "./flash-core"
 popd
 popd

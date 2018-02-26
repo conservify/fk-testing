@@ -10,6 +10,7 @@ import (
 	"os"
 	"os/signal"
 	"strconv"
+	"strings"
 	"sync"
 	"syscall"
 	"time"
@@ -37,10 +38,14 @@ func LookupFileOwner() *FileOwner {
 type options struct {
 	Device        string
 	DataDirectory string
-	StartWpa      bool
 	WpaSocket     string
 	Network       string
 	DeviceAddress string
+
+	StartWpa bool
+
+	UploadHost string
+	UploadData bool
 
 	fileOwner *FileOwner
 }
@@ -75,6 +80,21 @@ func ConnectAndDownload(ip string, o *options) error {
 		}
 	}
 
+	if o.UploadData {
+		for _, file := range files {
+			if strings.Contains(file, "DATA.BIN") {
+				log.Printf("Uploading %s...", file)
+				writer := fktestutils.NewStreamingWriter(o.UploadHost)
+				df := &fktestutils.DataFile{
+					Path: file,
+				}
+				df.ReadData(writer)
+				writer.Finished()
+				log.Printf("Done!")
+			}
+		}
+	}
+
 	return nil
 }
 
@@ -86,7 +106,11 @@ func main() {
 	flag.StringVar(&o.WpaSocket, "wpa-socket", "", "wpa socket to use")
 	flag.StringVar(&o.Network, "network", "", "network")
 	flag.StringVar(&o.DeviceAddress, "device-address", "192.168.1.1", "network")
+
 	flag.BoolVar(&o.StartWpa, "start-wpa", false, "start wpa ourselves")
+
+	flag.StringVar(&o.UploadHost, "upload-host", "api.fkdev.org", "host to upload to")
+	flag.BoolVar(&o.UploadData, "upload-data", false, "upload data files after downloading")
 
 	flag.Parse()
 

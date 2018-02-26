@@ -1,4 +1,4 @@
-package main
+package utilities
 
 import (
 	"bytes"
@@ -71,6 +71,7 @@ func (w *StreamingWriter) Finished() error {
 	c, err := http.Post(url, "application/vnd.fk.data+binary", bytes.NewBuffer(all))
 	if err != nil {
 		log.Fatalf("%v", err)
+		return err
 	}
 
 	w.response = c

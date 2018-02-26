@@ -2,6 +2,7 @@ package main
 
 import (
 	"flag"
+	fktestutils "github.com/fieldkit/testing/utilities"
 	"log"
 )
 
@@ -35,16 +36,16 @@ func main() {
 
 	flag.Parse()
 
-	var writer DataWriter
+	var writer fktestutils.DataWriter
 
 	if o.Csv {
-		writer = &CsvDataWriter{}
+		writer = &fktestutils.CsvDataWriter{}
 	} else if o.PostStream {
-		writer = NewStreamingWriter(o.Host)
+		writer = fktestutils.NewStreamingWriter(o.Host)
 	} else if o.PostJson {
-		writer = NewDataBinaryToPostWriter(o.Scheme, o.Host)
+		writer = fktestutils.NewDataBinaryToPostWriter(o.Scheme, o.Host)
 	} else {
-		writer = &NullWriter{}
+		writer = &fktestutils.NullWriter{}
 	}
 
 	log.Printf("Using %T", writer)
@@ -52,7 +53,7 @@ func main() {
 	for _, path := range flag.Args() {
 		log.Printf("Opening %s", path)
 
-		df := &DataFile{
+		df := &fktestutils.DataFile{
 			Path: path,
 		}
 

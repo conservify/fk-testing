@@ -16,10 +16,16 @@ const (
 )
 
 type StreamingWriter struct {
-	options      *options
+	host         string
 	response     *http.Response
 	buf          *proto.Buffer
 	haveMetadata bool
+}
+
+func NewStreamingWriter(host string) *StreamingWriter {
+	return &StreamingWriter{
+		host: host,
+	}
 }
 
 func (w *StreamingWriter) WriteRecord(raw []byte) {
@@ -58,7 +64,7 @@ func (w *StreamingWriter) Write(df *DataFile, record *pb.DataRecord, raw []byte)
 func (w *StreamingWriter) Finished() error {
 	all := w.buf.Bytes()
 
-	url := fmt.Sprintf("http://%s/messages/ingestion/stream", w.options.Host)
+	url := fmt.Sprintf("http://%s/messages/ingestion/stream", w.host)
 
 	log.Printf("Connecting to %s and uploading %d bytes", url, len(all))
 

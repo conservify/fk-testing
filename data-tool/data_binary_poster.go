@@ -12,7 +12,8 @@ import (
 )
 
 type DataBinaryToPostWriter struct {
-	options         *options
+	scheme          string
+	host            string
 	deviceId        string
 	location        *pb.DeviceLocation
 	time            int64
@@ -20,6 +21,15 @@ type DataBinaryToPostWriter struct {
 	readingsSeen    uint32
 	sensors         map[uint32]*pb.SensorInfo
 	readings        map[uint32]float32
+}
+
+func NewDataBinaryToPostWriter(scheme, host string) *DataBinaryToPostWriter {
+	return &DataBinaryToPostWriter{
+		scheme:   scheme,
+		host:     host,
+		sensors:  make(map[uint32]*pb.SensorInfo),
+		readings: make(map[uint32]float32),
+	}
 }
 
 func (dbpw *DataBinaryToPostWriter) CreateFieldKitMessage() *ingestion.HttpJsonMessage {
@@ -85,7 +95,7 @@ func (dbpw *DataBinaryToPostWriter) Write(df *DataFile, record *pb.DataRecord, r
 
 					if false {
 						body := bytes.NewBufferString(string(b))
-						url := fmt.Sprintf("%s://%s/messages/ingestion", dbpw.options.Scheme, dbpw.options.Host)
+						url := fmt.Sprintf("%s://%s/messages/ingestion", dbpw.scheme, dbpw.host)
 						url += "?token=" + "IGNORED"
 						_, err = http.Post(url, ingestion.HttpProviderJsonContentType, body)
 						if err != nil {

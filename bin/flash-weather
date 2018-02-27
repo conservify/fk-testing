@@ -1,6 +1,6 @@
 #!/bin/bash
 
 touch /tmp/flashing-weather
-~/tools/bin/flasher --port ~/devices/weather --binary fk-weather-module.bin
-pkill -f "flasher.+weather"
+sudo ~/tools/bin/flasher --port ~/devices/weather --binary fk-weather-module.bin
+sudo pkill -f "flasher.+weather"
 rm /tmp/flashing-weather

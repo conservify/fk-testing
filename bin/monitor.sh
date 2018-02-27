@@ -5,7 +5,7 @@ NAME=$3
 
 while /bin/true; do
 	echo Tailing...
-	~/tools/bin/flasher --port $PORT --tail --tail-inactivity 10 >> $NAME.log
+	sudo ~/tools/bin/flasher --port $PORT --tail --tail-inactivity 10 >> $NAME.log
 	while [ -f /tmp/flashing-$NAME ]; do
 		echo Waiting...
 		sleep 1

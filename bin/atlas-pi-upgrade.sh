@@ -22,5 +22,4 @@ rsync -zvua --progress bin/monitor.sh atlas-pi:
 rsync -zvua --progress bin/run-tmux-weather.sh atlas-pi:
 rsync -zvua --progress bin/flash-* atlas-pi:
 rsync -zvua --progress $BUILD/* atlas-pi:tools/bin
-ssh weather-pi 'sudo chown root. ~/tools/bin/flasher && sudo chmod +s ~/tools/bin/flasher'
 popd

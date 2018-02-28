@@ -46,7 +46,7 @@ func (w *StreamingWriter) Write(df *DataFile, record *pb.DataRecord, raw []byte)
 			if _, err := os.Stat(MetadataFilename); err == nil {
 				b, err := ioutil.ReadFile(MetadataFilename)
 				if err != nil {
-					log.Fatal(err)
+					return err
 				}
 				_ = b
 				log.Printf("Writing saved metadtaa")
@@ -70,7 +70,6 @@ func (w *StreamingWriter) Finished() error {
 
 	c, err := http.Post(url, "application/vnd.fk.data+binary", bytes.NewBuffer(all))
 	if err != nil {
-		log.Fatalf("%v", err)
 		return err
 	}
 

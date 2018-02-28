@@ -83,14 +83,19 @@ func ConnectAndDownload(ip string, o *options) error {
 	if o.UploadData {
 		for _, file := range files {
 			if strings.Contains(file, "DATA.BIN") {
-				log.Printf("Uploading %s...", file)
-				writer := fktestutils.NewStreamingWriter(o.UploadHost)
-				df := &fktestutils.DataFile{
-					Path: file,
+				for i := 0; i < 3; i += 1 {
+					log.Printf("Uploading %s...", file)
+					writer := fktestutils.NewStreamingWriter(o.UploadHost)
+					df := &fktestutils.DataFile{
+						Path: file,
+					}
+					df.ReadData(writer)
+					if writer.Finished() == nil {
+						log.Printf("Done!")
+						break
+					}
+					time.Sleep(5 * time.Second)
 				}
-				df.ReadData(writer)
-				writer.Finished()
-				log.Printf("Done!")
 			}
 		}
 	}

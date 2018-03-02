@@ -54,9 +54,9 @@ func (w *StreamingWriter) Write(df *DataFile, record *pb.DataRecord, raw []byte)
 				w.WriteRecord(b)
 			}
 		}
-
-		w.WriteRecord(raw)
 	}
+
+	w.WriteRecord(raw)
 
 	return nil
 }

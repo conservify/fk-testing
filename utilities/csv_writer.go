@@ -9,8 +9,10 @@ type CsvDataWriter struct {
 }
 
 func (csv *CsvDataWriter) Write(df *DataFile, record *pb.DataRecord, raw []byte) error {
-	entry := record.LoggedReading
-	fmt.Printf("%s,%d,%f,%f,%f,%d,%f\n", df.Path, entry.Location.Time, entry.Location.Longitude, entry.Location.Latitude, entry.Location.Altitude, entry.Reading.Time, entry.Reading.Value)
+	if record.LoggedReading != nil && record.LoggedReading.Location != nil && record.LoggedReading.Reading != nil {
+		entry := record.LoggedReading
+		fmt.Printf("%s,%d,%f,%f,%f,%d,%d,%f\n", df.Path, entry.Location.Time, entry.Location.Longitude, entry.Location.Latitude, entry.Location.Altitude, entry.Reading.Sensor, entry.Reading.Time, entry.Reading.Value)
+	}
 	return nil
 }
 

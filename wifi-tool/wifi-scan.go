@@ -14,15 +14,25 @@ type WifiNetwork struct {
 }
 
 type WifiScan struct {
+	Device   string
 	Networks []*WifiNetwork
 }
 
 func NewWifiScan(device string) (scan *WifiScan, err error) {
-	networks := make([]*WifiNetwork, 0)
-	cmd := exec.Command("iw", device, "scan")
+	scan = &WifiScan{
+		Device:   device,
+		Networks: make([]*WifiNetwork, 0),
+	}
+
+	return
+}
+
+func (s *WifiScan) Scan() error {
+	s.Networks = make([]*WifiNetwork, 0)
+	cmd := exec.Command("iw", s.Device, "scan")
 	raw, err := cmd.Output()
 	if err != nil {
-		return nil, err
+		return err
 	}
 
 	ssidRe := regexp.MustCompile("SSID: (.+)")
@@ -30,18 +40,14 @@ func NewWifiScan(device string) (scan *WifiScan, err error) {
 	for scanner.Scan() {
 		ssidM := ssidRe.FindStringSubmatch(scanner.Text())
 		if ssidM != nil {
-			networks = append(networks, &WifiNetwork{
+			s.Networks = append(s.Networks, &WifiNetwork{
 				Name:     ssidM[1],
 				Priority: -1,
 			})
 		}
 	}
 
-	scan = &WifiScan{
-		Networks: networks,
-	}
-
-	return
+	return nil
 }
 
 func (s *WifiScan) AddNetwork(name string, password string, priority int) {

@@ -64,14 +64,14 @@ func ConnectAndDownload(ip string, o *options) error {
 
 	caps, err := dc.QueryCapabilities()
 	if err != nil {
-		return fmt.Errorf("Unable to get capabilities")
+		return fmt.Errorf("Unable to get capabilities: %v", err)
 	}
 
 	deviceId := hex.EncodeToString(caps.Capabilities.DeviceId)
 
 	files, err := fktestutils.DownloadDeviceFiles(o.DataDirectory, deviceId, dc)
 	if err != nil {
-		return fmt.Errorf("Unable to download capabilities")
+		return fmt.Errorf("Unable to download: %v", err)
 	}
 
 	if o.fileOwner != nil {
@@ -134,10 +134,17 @@ func main() {
 
 	scan, err := NewWifiScan(o.Device)
 	if err != nil {
-		log.Fatalf("Error: %v", err)
+		log.Fatalf("Error creating Wifi scanner: %v", err)
 	}
 
-	scan.AddNetwork(o.Network, "", 10)
+	if o.Network != "" {
+		scan.AddNetwork(o.Network, "", 10)
+	} else {
+		err = scan.Scan()
+		if err != nil {
+			log.Fatalf("Error scanning Wifi: %v", err)
+		}
+	}
 
 	networks := scan.ConfiguredNetworks()
 	if len(networks) > 0 {
@@ -197,7 +204,7 @@ func main() {
 
 				if state != nil && state.Connected != connected {
 					if state.Connected {
-						for retries := 3; retries >= 0; retries-- {
+						for retries := 5; retries >= 0; retries-- {
 							time.Sleep(2 * time.Second)
 
 							err = ConnectAndDownload(o.DeviceAddress, &o)

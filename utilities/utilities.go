@@ -23,13 +23,18 @@ func DownloadDeviceFiles(dataDirectory string, deviceId string, dc *fkc.DeviceCl
 
 	for _, file := range fileReply.Files.Files {
 		if file.Size > 0 {
+			now := time.Now()
 			dir := fmt.Sprintf("%s/%s", dataDirectory, deviceId)
-			stamp := time.Now().Format("20060102_150405")
-			fileName := fmt.Sprintf("%s/%s_%s_%d", dir, file.Name, stamp, file.Version)
+			stamp := now.Format("20060102_150405")
+			yearMonth := now.Format("200601")
+			day := now.Format("02")
 
-			err = os.MkdirAll(dir, 0777)
+			stampedDir := fmt.Sprintf("%s/%s/%s", dir, yearMonth, day)
+			fileName := fmt.Sprintf("%s/%s_%s", stampedDir, file.Name, stamp)
+
+			err = os.MkdirAll(stampedDir, 0777)
 			if err != nil {
-				return files, fmt.Errorf("Unable to create %s (%v)", dir, err)
+				return files, fmt.Errorf("Unable to create %s (%v)", stampedDir, err)
 			}
 
 			f, err := os.OpenFile(fileName, os.O_CREATE|os.O_WRONLY|os.O_TRUNC, 0600)
@@ -37,9 +42,9 @@ func DownloadDeviceFiles(dataDirectory string, deviceId string, dc *fkc.DeviceCl
 				return files, fmt.Errorf("Unable to open %s (%v)", fileName, err)
 			}
 
-			files = append(files, fileName)
-
 			defer f.Close()
+
+			files = append(files, fileName)
 
 			log.Printf("[%s] Downloading %v (%s)", deviceId, file, fileName)
 
@@ -56,6 +61,8 @@ func DownloadDeviceFiles(dataDirectory string, deviceId string, dc *fkc.DeviceCl
 			bar.Finish()
 
 			if err != nil {
+				removeErr := os.Remove(fileName)
+				log.Printf("Deleting %s (%v)", fileName, removeErr)
 				return files, fmt.Errorf("Error: %v", err)
 			} else {
 				dc.EraseFile(file.Id)

@@ -33,7 +33,7 @@ func NewDataBinaryToPostWriter(scheme, host string) *DataBinaryToPostWriter {
 }
 
 func (dbpw *DataBinaryToPostWriter) CreateFieldKitMessage() *ingestion.HttpJsonMessage {
-	values := make(map[string]string)
+	values := make(map[string]interface{})
 	for key, value := range dbpw.readings {
 		values[dbpw.sensors[key].Name] = fmt.Sprintf("%f", value)
 	}

@@ -38,9 +38,11 @@ func (w *StreamingWriter) WriteRecord(raw []byte) {
 
 func (w *StreamingWriter) Write(df *DataFile, record *pb.DataRecord, raw []byte) error {
 	if record.Metadata != nil {
-		log.Printf("Saving metadata")
-		ioutil.WriteFile(MetadataFilename, raw, 0644)
-		w.haveMetadata = true
+		if record.Metadata.Sensors != nil && len(record.Metadata.Sensors) > 0 {
+			log.Printf("Saving metadata")
+			ioutil.WriteFile(MetadataFilename, raw, 0644)
+			w.haveMetadata = true
+		}
 	} else {
 		if !w.haveMetadata {
 			if _, err := os.Stat(MetadataFilename); err == nil {

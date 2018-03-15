@@ -15,7 +15,7 @@ type SplittingWriter struct {
 	BytesWritten int
 }
 
-func (sw *SplittingWriter) Open() error {
+func (sw *SplittingWriter) Open(df *DataFile) error {
 	if sw.File != nil {
 		sw.File.Close()
 		sw.FileNumber += 1
@@ -36,24 +36,19 @@ func (sw *SplittingWriter) Open() error {
 	sw.File = f
 	sw.BytesWritten = 0
 
+	if df.LastMetadata != nil {
+		log.Printf("Appending last metadata.")
+
+		err = sw.Append(df, df.LastMetadata)
+		if err != nil {
+			return err
+		}
+	}
+
 	return nil
 }
 
-func (sw *SplittingWriter) Write(df *DataFile, record *pb.DataRecord) error {
-	if sw.File == nil {
-		err := sw.Open()
-		if err != nil {
-			return err
-		}
-	}
-
-	if sw.BytesWritten >= sw.Size {
-		err := sw.Open()
-		if err != nil {
-			return err
-		}
-	}
-
+func (sw *SplittingWriter) Append(df *DataFile, record *pb.DataRecord) error {
 	bytes, err := df.Marshal(record)
 	if err != nil {
 		return err
@@ -67,6 +62,17 @@ func (sw *SplittingWriter) Write(df *DataFile, record *pb.DataRecord) error {
 	sw.BytesWritten += len(bytes)
 
 	return nil
+}
+
+func (sw *SplittingWriter) Write(df *DataFile, record *pb.DataRecord) error {
+	if sw.File == nil || sw.BytesWritten >= sw.Size {
+		err := sw.Open(df)
+		if err != nil {
+			return err
+		}
+	}
+
+	return sw.Append(df, record)
 }
 
 func (sw *SplittingWriter) Finished() error {

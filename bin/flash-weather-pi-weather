@@ -1,5 +1,7 @@
 #!/bin/bash
 
+set -xe
+
 pushd ~/fieldkit/weather
 make
 scp build/fk-weather-module.bin weather-pi: && ssh weather-pi "./flash-weather"

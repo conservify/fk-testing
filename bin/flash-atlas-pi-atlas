@@ -1,5 +1,7 @@
 #!/bin/bash
 
+set -xe
+
 pushd ~/fieldkit/atlas
 make
 scp build/fk-atlas-module.bin atlas-pi: && ssh atlas-pi "./flash-atlas"

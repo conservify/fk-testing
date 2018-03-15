@@ -1,0 +1,79 @@
+package utilities
+
+import (
+	"fmt"
+	"log"
+	"os"
+
+	pb "github.com/fieldkit/data-protocol"
+)
+
+type SplittingWriter struct {
+	Size         int
+	File         *os.File
+	FileNumber   int
+	BytesWritten int
+}
+
+func (sw *SplittingWriter) Open() error {
+	if sw.File != nil {
+		sw.File.Close()
+		sw.FileNumber += 1
+	}
+
+	name := fmt.Sprintf("batch-%03d.fkpb", sw.FileNumber)
+	if _, err := os.Stat(name); err == nil {
+		log.Fatalf("File already exists: %s", name)
+	}
+
+	log.Printf("Opening %s...", name)
+
+	f, err := os.Create(name)
+	if err != nil {
+		return err
+	}
+
+	sw.File = f
+	sw.BytesWritten = 0
+
+	return nil
+}
+
+func (sw *SplittingWriter) Write(df *DataFile, record *pb.DataRecord) error {
+	if sw.File == nil {
+		err := sw.Open()
+		if err != nil {
+			return err
+		}
+	}
+
+	if sw.BytesWritten >= sw.Size {
+		err := sw.Open()
+		if err != nil {
+			return err
+		}
+	}
+
+	bytes, err := df.Marshal(record)
+	if err != nil {
+		return err
+	}
+
+	_, err = sw.File.Write(bytes)
+	if err != nil {
+		return err
+	}
+
+	sw.BytesWritten += len(bytes)
+
+	return nil
+}
+
+func (sw *SplittingWriter) Finished() error {
+	if sw.File != nil {
+		sw.File.Close()
+		sw.File = nil
+	}
+
+	return nil
+}

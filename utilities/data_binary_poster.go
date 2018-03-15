@@ -55,7 +55,7 @@ func mapOfFloatsToMapOfStrings(original map[string]float32) map[string]string {
 	return r
 }
 
-func (dbpw *DataBinaryToPostWriter) Write(df *DataFile, record *pb.DataRecord, raw []byte) error {
+func (dbpw *DataBinaryToPostWriter) Write(df *DataFile, record *pb.DataRecord) error {
 	if record.Metadata != nil {
 		if dbpw.deviceId == "" {
 			dbpw.deviceId = hex.EncodeToString(record.Metadata.DeviceId)

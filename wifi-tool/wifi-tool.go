@@ -87,9 +87,10 @@ func ConnectAndDownload(ip string, o *options) error {
 					log.Printf("Uploading %s...", file)
 					writer := fktestutils.NewStreamingWriter(o.UploadHost)
 					df := &fktestutils.DataFile{
-						Path: file,
+						Path:        file,
+						Transformer: &fktestutils.MetadataSaver{},
 					}
-					df.ReadData(writer)
+					df.ReadData(file, writer)
 					if writer.Finished() == nil {
 						log.Printf("Done!")
 						break

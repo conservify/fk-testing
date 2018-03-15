@@ -3,12 +3,12 @@ package utilities
 import (
 	"bytes"
 	"fmt"
-	pb "github.com/fieldkit/data-protocol"
-	"github.com/golang/protobuf/proto"
-	"io/ioutil"
 	"log"
 	"net/http"
-	"os"
+
+	"github.com/golang/protobuf/proto"
+
+	pb "github.com/fieldkit/data-protocol"
 )
 
 const (
@@ -16,10 +16,9 @@ const (
 )
 
 type StreamingWriter struct {
-	host         string
-	response     *http.Response
-	buf          *proto.Buffer
-	haveMetadata bool
+	host     string
+	response *http.Response
+	buf      *proto.Buffer
 }
 
 func NewStreamingWriter(host string) *StreamingWriter {
@@ -36,30 +35,13 @@ func (w *StreamingWriter) WriteRecord(raw []byte) {
 	w.buf.EncodeRawBytes(raw)
 }
 
-func (w *StreamingWriter) Write(df *DataFile, record *pb.DataRecord, raw []byte) error {
-	if record.Metadata != nil {
-		if record.Metadata.Sensors != nil && len(record.Metadata.Sensors) > 0 {
-			log.Printf("Saving metadata")
-			ioutil.WriteFile(MetadataFilename, raw, 0644)
-			w.haveMetadata = true
-		}
-	} else {
-		if !w.haveMetadata {
-			if _, err := os.Stat(MetadataFilename); err == nil {
-				b, err := ioutil.ReadFile(MetadataFilename)
-				if err != nil {
-					return err
-				}
-				_ = b
-				log.Printf("Writing saved metadtaa")
-				w.haveMetadata = true
-				w.WriteRecord(b)
-			}
-		}
+func (w *StreamingWriter) Write(df *DataFile, record *pb.DataRecord) error {
+	raw, err := df.Marshal(record)
+	if err != nil {
+		return fmt.Errorf("Error writing to streaming writer: %v", err)
 	}
 
 	w.WriteRecord(raw)
-
 	return nil
 }
 

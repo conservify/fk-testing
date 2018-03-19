@@ -5,6 +5,8 @@ import (
 	"log"
 	"os"
 
+	"github.com/golang/protobuf/proto"
+
 	pb "github.com/fieldkit/data-protocol"
 )
 
@@ -54,7 +56,10 @@ func (sw *SplittingWriter) Append(df *DataFile, record *pb.DataRecord) error {
 		return err
 	}
 
-	_, err = sw.File.Write(bytes)
+	buf := proto.NewBuffer(nil)
+	buf.EncodeRawBytes(bytes)
+
+	_, err = sw.File.Write(buf.Bytes())
 	if err != nil {
 		return err
 	}

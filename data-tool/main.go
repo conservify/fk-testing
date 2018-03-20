@@ -12,7 +12,9 @@ type options struct {
 	PostJson   bool
 	PostStream bool
 	Verbose    bool
-	Split      int
+
+	SplitRecords int
+	SplitBytes   int
 
 	Project    string
 	Expedition string
@@ -33,7 +35,8 @@ func main() {
 	flag.BoolVar(&o.PostStream, "post-stream", false, "post binary stream directly")
 	flag.BoolVar(&o.Verbose, "verbose", false, "verbose output")
 
-	flag.IntVar(&o.Split, "split", 0, "split stream into smaller files")
+	flag.IntVar(&o.SplitBytes, "split-bytes", 0, "split stream into smaller batches")
+	flag.IntVar(&o.SplitRecords, "split-records", 0, "split stream into smaller batches")
 
 	flag.StringVar(&o.Project, "project", "www", "project")
 	flag.StringVar(&o.DeviceName, "device-name", "weather-proxy", "device name")
@@ -46,32 +49,34 @@ func main() {
 
 	flag.Parse()
 
-	var writer fktestutils.DataWriter
+	chain := make([]fktestutils.RecordTransformer, 0)
+	chain = append(chain, &fktestutils.MetadataSaver{})
+	chain = append(chain, &fktestutils.ForceDeviceId{
+		DeviceId: o.DeviceId,
+	})
+
+	if o.SplitBytes > 0 || o.SplitRecords > 0 {
+		chain = append(chain, &fktestutils.SplittingWriter{
+			AfterBytes:   o.SplitBytes,
+			AfterRecords: o.SplitRecords,
+		})
+	}
 
 	if o.Csv {
-		writer = &fktestutils.CsvDataWriter{}
+		chain = append(chain, &fktestutils.CsvDataWriter{})
 	} else if o.PostStream {
-		writer = fktestutils.NewStreamingWriter(o.Host)
+		chain = append(chain, fktestutils.NewStreamingWriter(o.Host))
 	} else if o.PostJson {
-		writer = fktestutils.NewDataBinaryToPostWriter(o.Scheme, o.Host)
-	} else if o.Split > 0 {
-		writer = &fktestutils.SplittingWriter{
-			Size: o.Split,
-		}
+		chain = append(chain, fktestutils.NewDataBinaryToPostWriter(o.Scheme, o.Host))
 	} else {
-		writer = &fktestutils.NullWriter{}
+		chain = append(chain, &fktestutils.NullWriter{})
 	}
 
 	transformer := &fktestutils.TransformerChain{
-		Chain: []fktestutils.RecordTransformer{
-			&fktestutils.MetadataSaver{},
-			&fktestutils.ForceDeviceId{
-				DeviceId: o.DeviceId,
-			},
-		},
+		Chain: chain,
 	}
 
-	log.Printf("Using %T", writer)
+	log.Printf("Using %#v", transformer)
 
 	df := &fktestutils.DataFile{
 		Transformer: transformer,
@@ -81,10 +86,8 @@ func main() {
 	for _, path := range flag.Args() {
 		log.Printf("Opening %s", path)
 
-		df.ReadData(path, writer)
+		df.ReadData(path)
 	}
-
-	writer.Finished()
 
 	log.Printf("Done (%d records)", df.NumberOfRecords)
 }

@@ -38,13 +38,31 @@ func (df *DataFile) Marshal(record *pb.DataRecord) (raw []byte, err error) {
 	return raw, nil
 }
 
-func (df *DataFile) ReadData(path string, dw DataWriter) {
+func (df *DataFile) ReadData(path string) error {
 	data, err := ioutil.ReadFile(path)
 	if err != nil {
 		log.Fatalf("Error opening file: %v", err)
 	}
 
 	df.Path = path
+
+	lastBegin := func(*DataFile) error {
+		return nil
+	}
+	lastProcess := func(df *DataFile, record *pb.DataRecord) error {
+		if record.Metadata != nil {
+			df.LastMetadata = record
+		}
+		return nil
+	}
+	lastEnd := func(*DataFile) error {
+		return nil
+	}
+
+	err = df.Transformer.Begin(df, lastBegin)
+	if err != nil {
+		log.Fatalf("Error: %v", err)
+	}
 
 	buf := proto.NewBuffer(data[:])
 
@@ -58,6 +76,8 @@ func (df *DataFile) ReadData(path string, dw DataWriter) {
 			log.Fatalf("%v", err)
 		}
 
+		df.NumberOfRecords += 1
+
 		record, err := df.Unmarshal(messageBytes)
 		if err != nil {
 			log.Printf("Unable to unmarshal from file: %v (%d bytes)", err, len(messageBytes))
@@ -66,36 +86,36 @@ func (df *DataFile) ReadData(path string, dw DataWriter) {
 				log.Printf("%+v", record)
 			}
 
-			last := func(df *DataFile, record *pb.DataRecord) error {
-				if record.Metadata != nil {
-					df.LastMetadata = record
-				}
-
-				return dw.Write(df, record)
-			}
-
-			err = df.Transformer.TransformRecord(df, record, last)
+			err = df.Transformer.Process(df, record, lastBegin, lastProcess, lastEnd)
 			if err != nil {
 				log.Fatalf("Error: %v", err)
 			}
-
-			df.NumberOfRecords += 1
 		}
 	}
-}
 
-type DataWriter interface {
-	Write(df *DataFile, record *pb.DataRecord) error
-	Finished() error
+	err = df.Transformer.End(df, lastEnd)
+	if err != nil {
+		log.Fatalf("Error: %v", err)
+	}
+
+	return nil
 }
 
 type NullWriter struct {
+	Processed int
 }
 
-func (w *NullWriter) Write(df *DataFile, record *pb.DataRecord) error {
-	return nil
+func (w *NullWriter) Begin(df *DataFile, chain BeginChainFunc) error {
+	w.Processed = 0
+	return chain(df)
 }
 
-func (w *NullWriter) Finished() error {
-	return nil
+func (w *NullWriter) Process(df *DataFile, record *pb.DataRecord, begin BeginChainFunc, chain ProcessChainFunc, end EndChainFunc) error {
+	w.Processed += 1
+	return chain(df, record)
+}
+
+func (w *NullWriter) End(df *DataFile, chain EndChainFunc) error {
+	log.Printf("(NullWriter) End, processed = %d", w.Processed)
+	return chain(df)
 }

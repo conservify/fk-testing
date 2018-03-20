@@ -55,7 +55,11 @@ func mapOfFloatsToMapOfStrings(original map[string]float32) map[string]string {
 	return r
 }
 
-func (dbpw *DataBinaryToPostWriter) Write(df *DataFile, record *pb.DataRecord) error {
+func (dbpw *DataBinaryToPostWriter) Begin(df *DataFile, chain BeginChainFunc) error {
+	return chain(df)
+}
+
+func (dbpw *DataBinaryToPostWriter) Process(df *DataFile, record *pb.DataRecord, begin BeginChainFunc, chain ProcessChainFunc, end EndChainFunc) error {
 	if record.Metadata != nil {
 		if dbpw.deviceId == "" {
 			dbpw.deviceId = hex.EncodeToString(record.Metadata.DeviceId)
@@ -110,10 +114,10 @@ func (dbpw *DataBinaryToPostWriter) Write(df *DataFile, record *pb.DataRecord) e
 			}
 		}
 	}
-	return nil
+	return chain(df, record)
 
 }
 
-func (dbpw *DataBinaryToPostWriter) Finished() error {
-	return nil
+func (dbpw *DataBinaryToPostWriter) End(df *DataFile, chain EndChainFunc) error {
+	return chain(df)
 }

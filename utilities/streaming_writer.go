@@ -11,10 +11,6 @@ import (
 	pb "github.com/fieldkit/data-protocol"
 )
 
-const (
-	MetadataFilename = "Metadata.fkpb"
-)
-
 type StreamingWriter struct {
 	host     string
 	response *http.Response
@@ -27,25 +23,24 @@ func NewStreamingWriter(host string) *StreamingWriter {
 	}
 }
 
-func (w *StreamingWriter) WriteRecord(raw []byte) {
-	if w.buf == nil {
-		w.buf = proto.NewBuffer(nil)
-	}
+func (w *StreamingWriter) Begin(df *DataFile, chain BeginChainFunc) error {
+	w.buf = proto.NewBuffer(nil)
 
-	w.buf.EncodeRawBytes(raw)
+	return chain(df)
 }
 
-func (w *StreamingWriter) Write(df *DataFile, record *pb.DataRecord) error {
+func (w *StreamingWriter) Process(df *DataFile, record *pb.DataRecord, begin BeginChainFunc, chain ProcessChainFunc, end EndChainFunc) error {
 	raw, err := df.Marshal(record)
 	if err != nil {
 		return fmt.Errorf("Error writing to streaming writer: %v", err)
 	}
 
-	w.WriteRecord(raw)
-	return nil
+	w.buf.EncodeRawBytes(raw)
+
+	return chain(df, record)
 }
 
-func (w *StreamingWriter) Finished() error {
+func (w *StreamingWriter) End(df *DataFile, chain EndChainFunc) error {
 	all := w.buf.Bytes()
 
 	url := fmt.Sprintf("http://%s/messages/ingestion/stream", w.host)
@@ -59,5 +54,5 @@ func (w *StreamingWriter) Finished() error {
 
 	w.response = c
 
-	return nil
+	return chain(df)
 }

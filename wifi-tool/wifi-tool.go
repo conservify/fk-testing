@@ -86,15 +86,17 @@ func ConnectAndDownload(ip string, o *options) error {
 				for i := 0; i < 3; i += 1 {
 					log.Printf("Uploading %s...", file)
 					writer := fktestutils.NewStreamingWriter(o.UploadHost)
+					transformer := &fktestutils.TransformerChain{
+						Chain: []fktestutils.RecordTransformer{
+							&fktestutils.MetadataSaver{},
+							writer,
+						},
+					}
 					df := &fktestutils.DataFile{
 						Path:        file,
-						Transformer: &fktestutils.MetadataSaver{},
+						Transformer: transformer,
 					}
-					df.ReadData(file, writer)
-					if writer.Finished() == nil {
-						log.Printf("Done!")
-						break
-					}
+					df.ReadData(file)
 					time.Sleep(5 * time.Second)
 				}
 			}

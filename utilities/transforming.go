@@ -8,48 +8,40 @@ import (
 	pb "github.com/fieldkit/data-protocol"
 )
 
-type TransformChainFunc func(*DataFile, *pb.DataRecord) error
+type BeginChainFunc func(*DataFile) error
+type ProcessChainFunc func(*DataFile, *pb.DataRecord) error
+type EndChainFunc func(*DataFile) error
 
 type RecordTransformer interface {
-	TransformRecord(df *DataFile, record *pb.DataRecord, chain TransformChainFunc) error
+	Begin(df *DataFile, chain BeginChainFunc) error
+	Process(df *DataFile, record *pb.DataRecord, begin BeginChainFunc, chain ProcessChainFunc, end EndChainFunc) error
+	End(df *DataFile, chain EndChainFunc) error
 }
 
 type NoopTransform struct {
 }
 
-func (t *NoopTransform) TransformRecord(df *DataFile, record *pb.DataRecord, chain TransformChainFunc) error {
-	chain(df, record)
-	return nil
+func (t *NoopTransform) Begin(df *DataFile, chain BeginChainFunc) error {
+	return chain(df)
 }
 
-type TransformerChain struct {
-	Chain []RecordTransformer
+func (t *NoopTransform) Process(df *DataFile, record *pb.DataRecord, begin BeginChainFunc, chain ProcessChainFunc, end EndChainFunc) error {
+	return chain(df, record)
 }
 
-func (t *TransformerChain) Invoke(df *DataFile, record *pb.DataRecord, last TransformChainFunc, n int) error {
-	following := last
-
-	if n < len(t.Chain)-1 {
-		following = func(df *DataFile, record *pb.DataRecord) error {
-			return t.Invoke(df, record, last, n+1)
-		}
-	}
-
-	return t.Chain[n].TransformRecord(df, record, following)
-}
-
-func (t *TransformerChain) TransformRecord(df *DataFile, record *pb.DataRecord, chain TransformChainFunc) error {
-	if len(t.Chain) == 0 {
-		return chain(df, record)
-	}
-	return t.Invoke(df, record, chain, 0)
+func (t *NoopTransform) End(df *DataFile, chain EndChainFunc) error {
+	return chain(df)
 }
 
 type ForceDeviceId struct {
 	DeviceId string
 }
 
-func (t *ForceDeviceId) TransformRecord(df *DataFile, record *pb.DataRecord, chain TransformChainFunc) error {
+func (t *ForceDeviceId) Begin(df *DataFile, chain BeginChainFunc) error {
+	return chain(df)
+}
+
+func (t *ForceDeviceId) Process(df *DataFile, record *pb.DataRecord, begin BeginChainFunc, chain ProcessChainFunc, end EndChainFunc) error {
 	if t.DeviceId == "" {
 		return chain(df, record)
 	}
@@ -66,4 +58,8 @@ func (t *ForceDeviceId) TransformRecord(df *DataFile, record *pb.DataRecord, cha
 	}
 
 	return chain(df, record)
+}
+
+func (t *ForceDeviceId) End(df *DataFile, chain EndChainFunc) error {
+	return chain(df)
 }

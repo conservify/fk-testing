@@ -9,11 +9,19 @@ import (
 	pb "github.com/fieldkit/data-protocol"
 )
 
+const (
+	MetadataFilename = "Metadata.fkpb"
+)
+
 type MetadataSaver struct {
 	WroteMetadata bool
 }
 
-func (w *MetadataSaver) TransformRecord(df *DataFile, record *pb.DataRecord, chain TransformChainFunc) error {
+func (w *MetadataSaver) Begin(df *DataFile, chain BeginChainFunc) error {
+	return chain(df)
+}
+
+func (w *MetadataSaver) Process(df *DataFile, record *pb.DataRecord, begin BeginChainFunc, chain ProcessChainFunc, end EndChainFunc) error {
 	if !w.WroteMetadata {
 		if _, err := os.Stat(MetadataFilename); err == nil {
 			bytes, err := ioutil.ReadFile(MetadataFilename)
@@ -39,7 +47,7 @@ func (w *MetadataSaver) TransformRecord(df *DataFile, record *pb.DataRecord, cha
 		w.WroteMetadata = true
 	}
 
-	if record.Metadata != nil && record.Metadata.Sensors != nil && len(record.Metadata.Sensors) > 0 {
+	if IsAcceptableMetadataRecord(record) {
 		bytes, err := df.Marshal(record)
 		if err != nil {
 			return fmt.Errorf("Unable to marshal metadata: %v", err)
@@ -54,4 +62,12 @@ func (w *MetadataSaver) TransformRecord(df *DataFile, record *pb.DataRecord, cha
 	}
 
 	return chain(df, record)
+}
+
+func (w *MetadataSaver) End(df *DataFile, chain EndChainFunc) error {
+	return chain(df)
+}
+
+func IsAcceptableMetadataRecord(record *pb.DataRecord) bool {
+	return record.Metadata != nil && record.Metadata.Sensors != nil && len(record.Metadata.Sensors) > 0
 }

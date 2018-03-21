@@ -3,6 +3,7 @@ package utilities
 import (
 	"bytes"
 	"fmt"
+	"io/ioutil"
 	"log"
 	"net/http"
 
@@ -12,9 +13,8 @@ import (
 )
 
 type StreamingWriter struct {
-	host     string
-	response *http.Response
-	buf      *proto.Buffer
+	host string
+	buf  *proto.Buffer
 }
 
 func NewStreamingWriter(host string) *StreamingWriter {
@@ -47,12 +47,19 @@ func (w *StreamingWriter) End(df *DataFile, chain EndChainFunc) error {
 
 	log.Printf("Connecting to %s and uploading %d bytes", url, len(all))
 
-	c, err := http.Post(url, "application/vnd.fk.data+binary", bytes.NewBuffer(all))
+	r, err := http.Post(url, "application/vnd.fk.data+binary", bytes.NewBuffer(all))
 	if err != nil {
-		return err
+		return fmt.Errorf("Error uploading %v", err)
 	}
 
-	w.response = c
+	log.Printf("Done [%d] %s", r.StatusCode, r.Status)
+
+	bodyBytes, err := ioutil.ReadAll(r.Body)
+	body := string(bodyBytes)
+
+	if r.StatusCode != 200 {
+		return fmt.Errorf("Server error: (%v): %s", r.StatusCode, body)
+	}
 
 	return chain(df)
 }

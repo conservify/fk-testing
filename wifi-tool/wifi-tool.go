@@ -85,7 +85,7 @@ func ConnectAndDownload(ip string, o *options) error {
 			if strings.Contains(file, "DATA.BIN") {
 				for i := 0; i < 3; i += 1 {
 					log.Printf("Uploading %s...", file)
-					writer := fktestutils.NewStreamingWriter(o.UploadHost)
+					writer := fktestutils.NewStreamingWriter(o.UploadHost, false)
 					transformer := &fktestutils.TransformerChain{
 						Chain: []fktestutils.RecordTransformer{
 							&fktestutils.MetadataSaver{},

@@ -13,13 +13,15 @@ import (
 )
 
 type StreamingWriter struct {
-	host string
-	buf  *proto.Buffer
+	host  string
+	async bool
+	buf   *proto.Buffer
 }
 
-func NewStreamingWriter(host string) *StreamingWriter {
+func NewStreamingWriter(host string, async bool) *StreamingWriter {
 	return &StreamingWriter{
-		host: host,
+		host:  host,
+		async: async,
 	}
 }
 
@@ -47,18 +49,29 @@ func (w *StreamingWriter) End(df *DataFile, chain EndChainFunc) error {
 
 	log.Printf("Connecting to %s and uploading %d bytes", url, len(all))
 
-	r, err := http.Post(url, "application/vnd.fk.data+binary", bytes.NewBuffer(all))
+	req, err := http.NewRequest("POST", url, bytes.NewBuffer(all))
 	if err != nil {
 		return fmt.Errorf("Error uploading %v", err)
 	}
 
-	log.Printf("Done [%d] %s", r.StatusCode, r.Status)
+	req.Header.Add("Content-Type", "application/vnd.fk.data+binary")
+	if w.async {
+		req.Header.Add("Fk-Processing", "async")
+	}
 
-	bodyBytes, err := ioutil.ReadAll(r.Body)
+	cl := http.Client{}
+	resp, err := cl.Do(req)
+	if err != nil {
+		return fmt.Errorf("Error uploading %v", err)
+	}
+
+	log.Printf("Done [%d] %s", resp.StatusCode, resp.Status)
+
+	bodyBytes, err := ioutil.ReadAll(resp.Body)
 	body := string(bodyBytes)
 
-	if r.StatusCode != 200 {
-		return fmt.Errorf("Server error: (%v): %s", r.StatusCode, body)
+	if resp.StatusCode != 200 {
+		return fmt.Errorf("Server error: (%v): %s", resp.StatusCode, body)
 	}
 
 	return chain(df)

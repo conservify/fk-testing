@@ -5,10 +5,11 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
-	"github.com/fieldkit/cloud/server/backend/ingestion"
-	pb "github.com/fieldkit/data-protocol"
 	"log"
 	"net/http"
+
+	"github.com/fieldkit/cloud/server/backend/ingestion/formatting"
+	pb "github.com/fieldkit/data-protocol"
 )
 
 type DataBinaryToPostWriter struct {
@@ -32,13 +33,13 @@ func NewDataBinaryToPostWriter(scheme, host string) *DataBinaryToPostWriter {
 	}
 }
 
-func (dbpw *DataBinaryToPostWriter) CreateFieldKitMessage() *ingestion.HttpJsonMessage {
+func (dbpw *DataBinaryToPostWriter) CreateHttpJsonMessage() *formatting.HttpJsonMessage {
 	values := make(map[string]interface{})
 	for key, value := range dbpw.readings {
 		values[dbpw.sensors[key].Name] = fmt.Sprintf("%f", value)
 	}
 
-	return &ingestion.HttpJsonMessage{
+	return &formatting.HttpJsonMessage{
 		Location: []float64{float64(dbpw.location.Longitude), float64(dbpw.location.Latitude), float64(dbpw.location.Altitude)},
 		Time:     dbpw.time,
 		Device:   dbpw.deviceId,
@@ -92,7 +93,7 @@ func (dbpw *DataBinaryToPostWriter) Process(df *DataFile, record *pb.DataRecord,
 				dbpw.time = int64(record.LoggedReading.Reading.Time)
 
 				if dbpw.location != nil {
-					b, err := json.Marshal(dbpw.CreateFieldKitMessage())
+					b, err := json.Marshal(dbpw.CreateHttpJsonMessage())
 					if err != nil {
 						log.Fatalf("Error %v", err)
 					}
@@ -101,7 +102,7 @@ func (dbpw *DataBinaryToPostWriter) Process(df *DataFile, record *pb.DataRecord,
 						body := bytes.NewBufferString(string(b))
 						url := fmt.Sprintf("%s://%s/messages/ingestion", dbpw.scheme, dbpw.host)
 						url += "?token=" + "IGNORED"
-						_, err = http.Post(url, ingestion.HttpProviderJsonContentType, body)
+						_, err = http.Post(url, formatting.HttpProviderJsonContentType, body)
 						if err != nil {
 							log.Fatalf("%s %s", url, err)
 						}

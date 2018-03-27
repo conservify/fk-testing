@@ -1,6 +1,7 @@
 package utilities
 
 import (
+	"fmt"
 	"io"
 	"io/ioutil"
 	"log"
@@ -117,5 +118,24 @@ func (w *NullWriter) Process(df *DataFile, record *pb.DataRecord, begin BeginCha
 
 func (w *NullWriter) End(df *DataFile, chain EndChainFunc) error {
 	log.Printf("(NullWriter) End, processed = %d", w.Processed)
+	return chain(df)
+}
+
+type LogWriter struct {
+	Processed int
+}
+
+func (w *LogWriter) Begin(df *DataFile, chain BeginChainFunc) error {
+	return chain(df)
+}
+
+func (w *LogWriter) Process(df *DataFile, record *pb.DataRecord, begin BeginChainFunc, chain ProcessChainFunc, end EndChainFunc) error {
+	if record.Log != nil {
+		fmt.Printf("%-10d %-30s %s\n", record.Log.Uptime, record.Log.Facility, record.Log.Message)
+	}
+	return chain(df, record)
+}
+
+func (w *LogWriter) End(df *DataFile, chain EndChainFunc) error {
 	return chain(df)
 }

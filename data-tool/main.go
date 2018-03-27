@@ -14,6 +14,8 @@ type options struct {
 	Verbose         bool
 	PostStreamAsync bool
 
+	Log bool
+
 	SplitRecords int
 	SplitBytes   int
 
@@ -35,7 +37,9 @@ func main() {
 	flag.BoolVar(&o.PostJson, "post-json", false, "interpret and post json")
 	flag.BoolVar(&o.PostStream, "post-stream", false, "post binary stream directly")
 	flag.BoolVar(&o.PostStreamAsync, "post-stream-async", false, "post binary stream directly and process async")
-	flag.BoolVar(&o.Verbose, "verbose", false, "verbose output")
+	flag.BoolVar(&o.Verbose, "verbose", false, "increased verbosity")
+
+	flag.BoolVar(&o.Log, "log", false, "display log")
 
 	flag.IntVar(&o.SplitBytes, "split-bytes", 0, "split stream into smaller batches")
 	flag.IntVar(&o.SplitRecords, "split-records", 0, "split stream into smaller batches")
@@ -72,6 +76,8 @@ func main() {
 		chain = append(chain, fktestutils.NewStreamingWriter(o.Host, true))
 	} else if o.PostJson {
 		chain = append(chain, fktestutils.NewDataBinaryToPostWriter(o.Scheme, o.Host))
+	} else if o.Log {
+		chain = append(chain, &fktestutils.LogWriter{})
 	} else {
 		chain = append(chain, &fktestutils.NullWriter{})
 	}

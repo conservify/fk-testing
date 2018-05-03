@@ -1,11 +1,17 @@
 GOARCH ?= amd64
-GO ?= env GOOS=linux GOARCH=$(GOARCH) go
-BUILD ?= build
+GOOS ?= linux
+GO ?= env GOOS=$(GOOS) GOARCH=$(GOARCH) go
+BUILD_ROOT ?= build
+BUILD ?= $(BUILD_ROOT)/$(GOOS)-$(GOARCH)
 
-all: $(BUILD)/fk-lan-sync $(BUILD)/fk-log-analyzer $(BUILD)/fk-data-tool $(BUILD)/fk-wifi-tool
+all:
+	GOOS=linux GOARCH=amd64 make binaries
+	GOOS=linux GOARCH=arm make binaries
 
-$(BUILD):
-	mkdir -p $(BUILD)
+binaries: $(BUILD)/fk-lan-sync $(BUILD)/fk-log-analyzer $(BUILD)/fk-data-tool $(BUILD)/fk-wifi-tool
+
+$(BUILD_ROOT):
+	mkdir -p $(BUILD_ROOT)
 
 $(BUILD)/fk-lan-sync: lan-sync/*.go utilities/*.go
 	$(GO) build -o $(BUILD)/fk-lan-sync lan-sync/*.go
@@ -26,6 +32,6 @@ install: all
 	cp $(BUILD)/fk-wifi-tool $(INSTALLDIR)
 
 clean:
-	rm -rf $(BUILD)
+	rm -rf $(BUILD_ROOT)
 
 veryclean:

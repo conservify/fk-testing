@@ -1,37 +1,44 @@
 GOARCH ?= amd64
 GOOS ?= linux
 GO ?= env GOOS=$(GOOS) GOARCH=$(GOARCH) go
-BUILD_ROOT ?= build
-BUILD ?= $(BUILD_ROOT)/$(GOOS)-$(GOARCH)
+BUILD ?= build
+BUILDARCH ?= $(BUILD)/$(GOOS)-$(GOARCH)
 
 all:
-	GOOS=linux GOARCH=amd64 make binaries
-	GOOS=linux GOARCH=arm make binaries
+	GOOS=linux GOARCH=amd64 make binaries-all
+	GOOS=linux GOARCH=arm make binaries-all
 
-binaries: $(BUILD)/fk-lan-sync $(BUILD)/fk-log-analyzer $(BUILD)/fk-data-tool $(BUILD)/fk-wifi-tool
+install:
+	GOOS=linux GOARCH=amd64 make binaries-install
+	GOOS=linux GOARCH=arm make binaries-install
 
-$(BUILD_ROOT):
-	mkdir -p $(BUILD_ROOT)
+binaries-all: $(BUILDARCH)/fk-lan-sync $(BUILDARCH)/fk-log-analyzer $(BUILDARCH)/fk-data-tool $(BUILDARCH)/fk-wifi-tool
 
-$(BUILD)/fk-lan-sync: lan-sync/*.go utilities/*.go
-	$(GO) build -o $(BUILD)/fk-lan-sync lan-sync/*.go
+$(BUILD):
+	mkdir -p $(BUILD)
 
-$(BUILD)/fk-log-analyzer: log-analyzer/*.go utilities/*.go
-	$(GO) build -o $(BUILD)/fk-log-analyzer log-analyzer/*.go
+$(BUILDARCH):
+	mkdir -p $(BUILDARCH)
 
-$(BUILD)/fk-data-tool: data-tool/*.go utilities/*.go
-	$(GO) build -o $(BUILD)/fk-data-tool data-tool/*.go
+$(BUILDARCH)/fk-lan-sync: lan-sync/*.go utilities/*.go
+	$(GO) build -o $(BUILDARCH)/fk-lan-sync lan-sync/*.go
 
-$(BUILD)/fk-wifi-tool: wifi-tool/*.go utilities/*.go
-	$(GO) build -o $(BUILD)/fk-wifi-tool wifi-tool/*.go
+$(BUILDARCH)/fk-log-analyzer: log-analyzer/*.go utilities/*.go
+	$(GO) build -o $(BUILDARCH)/fk-log-analyzer log-analyzer/*.go
 
-install: all
-	cp $(BUILD)/fk-lan-sync $(INSTALLDIR)
-	cp $(BUILD)/fk-log-analyzer $(INSTALLDIR)
-	cp $(BUILD)/fk-data-tool $(INSTALLDIR)
-	cp $(BUILD)/fk-wifi-tool $(INSTALLDIR)
+$(BUILDARCH)/fk-data-tool: data-tool/*.go utilities/*.go
+	$(GO) build -o $(BUILDARCH)/fk-data-tool data-tool/*.go
+
+$(BUILDARCH)/fk-wifi-tool: wifi-tool/*.go utilities/*.go
+	$(GO) build -o $(BUILDARCH)/fk-wifi-tool wifi-tool/*.go
+
+binaries-install: all
+	cp $(BUILDARCH)/fk-lan-sync $(INSTALLDIR)
+	cp $(BUILDARCH)/fk-log-analyzer $(INSTALLDIR)
+	cp $(BUILDARCH)/fk-data-tool $(INSTALLDIR)
+	cp $(BUILDARCH)/fk-wifi-tool $(INSTALLDIR)
 
 clean:
-	rm -rf $(BUILD_ROOT)
+	rm -rf $(BUILD)
 
 veryclean:

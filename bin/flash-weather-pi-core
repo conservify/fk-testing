@@ -6,7 +6,7 @@ pushd ~/fieldkit/firmware-common
 mkdir -p build
 pushd build
 cp ../core/config.h.template ../core/config.h
-cmake -DDEBUG_UART_FALLBACK=OFF ../ && make
+cmake -DDEBUG_UART_FALLBACK=OFF -DDISABLE_RADIO=ON ../ && make
 scp fk-core.bin weather-pi: && ssh weather-pi "./flash-core"
 popd
 popd

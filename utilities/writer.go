@@ -79,13 +79,11 @@ func (df *DataFile) ReadData(path string) error {
 			log.Fatalf("%v", err)
 		}
 
-		temp := proto.EncodeVarint(uint64(len(messageBytes)))
-		position += len(messageBytes) + len(temp)
 		df.NumberOfRecords += 1
 
 		record, err := df.Unmarshal(messageBytes)
 		if err != nil {
-			log.Printf("Unable to unmarshal from file: %v (%d bytes)", err, len(messageBytes))
+			log.Printf("(%d) Unable to unmarshal from file: %v (%d bytes)", position, err, len(messageBytes))
 		} else {
 			if df.Verbose {
 				log.Printf("(%d) %+v", position, record)
@@ -96,6 +94,9 @@ func (df *DataFile) ReadData(path string) error {
 				log.Fatalf("Error: %v", err)
 			}
 		}
+
+		temp := proto.EncodeVarint(uint64(len(messageBytes)))
+		position += len(messageBytes) + len(temp)
 	}
 
 	err = df.Transformer.End(df, lastEnd)

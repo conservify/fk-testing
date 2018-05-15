@@ -96,7 +96,9 @@ func main() {
 	for _, path := range flag.Args() {
 		log.Printf("Opening %s", path)
 
-		df.ReadData(path)
+		if err := df.ReadData(path); err != nil {
+			log.Fatal(err)
+		}
 	}
 
 	log.Printf("Done (%d records)", df.NumberOfRecords)

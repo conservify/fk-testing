@@ -42,7 +42,7 @@ func (df *DataFile) Marshal(record *pb.DataRecord) (raw []byte, err error) {
 func (df *DataFile) ReadData(path string) error {
 	data, err := ioutil.ReadFile(path)
 	if err != nil {
-		log.Fatalf("Error opening file: %v", err)
+		return fmt.Errorf("Error opening file: %v", err)
 	}
 
 	df.Path = path
@@ -64,7 +64,7 @@ func (df *DataFile) ReadData(path string) error {
 
 	err = df.Transformer.Begin(df, lastBegin)
 	if err != nil {
-		log.Fatalf("Error: %v", err)
+		return err
 	}
 
 	buf := proto.NewBuffer(data[:])
@@ -76,7 +76,7 @@ func (df *DataFile) ReadData(path string) error {
 				err = nil
 				break
 			}
-			log.Fatalf("%v", err)
+			return fmt.Errorf("Decode error: %v", err)
 		}
 
 		df.NumberOfRecords += 1
@@ -91,7 +91,7 @@ func (df *DataFile) ReadData(path string) error {
 
 			err = df.Transformer.Process(df, record, lastBegin, lastProcess, lastEnd)
 			if err != nil {
-				log.Fatalf("Error: %v", err)
+				return err
 			}
 		}
 
@@ -101,7 +101,7 @@ func (df *DataFile) ReadData(path string) error {
 
 	err = df.Transformer.End(df, lastEnd)
 	if err != nil {
-		log.Fatalf("Error: %v", err)
+		return err
 	}
 
 	return nil

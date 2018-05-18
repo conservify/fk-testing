@@ -40,7 +40,7 @@ func (fw *FileWriter) GenerateFileName() (string, error) {
 
 	for {
 		if fw.Numbered {
-			fn = fmt.Sprintf("%s_%d", fw.Name, i)
+			fn = fmt.Sprintf("%s_%05d", fw.Name, i)
 		}
 
 		if _, err := os.Stat(fn); err == nil {

@@ -28,6 +28,8 @@ type options struct {
 	Password   string
 
 	DeviceId string
+
+	File string
 }
 
 func main() {
@@ -50,6 +52,8 @@ func main() {
 	flag.StringVar(&o.Host, "host", "127.0.0.1:8080", "hostname to use")
 	flag.StringVar(&o.Username, "username", "demo-user", "username to use")
 	flag.StringVar(&o.Password, "password", "asdfasdfasdf", "password to use")
+
+	flag.StringVar(&o.File, "file", "", "write to a file")
 
 	flag.StringVar(&o.DeviceId, "force-device-id", "", "force uploaded data to use this device id")
 
@@ -78,8 +82,14 @@ func main() {
 		chain = append(chain, fktestutils.NewDataBinaryToPostWriter(o.Scheme, o.Host))
 	} else if o.Log {
 		chain = append(chain, &fktestutils.LogWriter{})
+	} else if o.File != "" {
+		chain = append(chain, &fktestutils.FileWriter{
+			Name:     o.File,
+			Numbered: true,
+		})
 	} else {
 		chain = append(chain, &fktestutils.NullWriter{})
+
 	}
 
 	transformer := &fktestutils.TransformerChain{

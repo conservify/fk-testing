@@ -1,70 +1,12 @@
 package utilities
 
 import (
-	_ "fmt"
 	"log"
-	"os"
 
 	"github.com/golang/protobuf/proto"
 
 	pb "github.com/fieldkit/data-protocol"
 )
-
-type FileWriter struct {
-	Name string
-	File *os.File
-}
-
-func (fw *FileWriter) Append(df *DataFile, record *pb.DataRecord) error {
-	bytes, err := df.Marshal(record)
-	if err != nil {
-		return err
-	}
-
-	buf := proto.NewBuffer(nil)
-	buf.EncodeRawBytes(bytes)
-
-	_, err = fw.File.Write(buf.Bytes())
-	if err != nil {
-		return err
-	}
-
-	return nil
-}
-
-func (fw *FileWriter) Begin(df *DataFile, chain BeginChainFunc) error {
-	if _, err := os.Stat(fw.Name); err == nil {
-		log.Fatalf("File already exists: %s", fw.Name)
-	}
-
-	log.Printf("Opening %s...", fw.Name)
-
-	f, err := os.Create(fw.Name)
-	if err != nil {
-		return err
-	}
-
-	fw.File = f
-
-	return chain(df)
-}
-
-func (fw *FileWriter) Process(df *DataFile, record *pb.DataRecord, begin BeginChainFunc, chain ProcessChainFunc, end EndChainFunc) error {
-	err := fw.Append(df, record)
-	if err != nil {
-		return err
-	}
-	return chain(df, record)
-}
-
-func (fw *FileWriter) End(df *DataFile, chain EndChainFunc) error {
-	if fw.File != nil {
-		fw.File.Close()
-		fw.File = nil
-	}
-
-	return chain(df)
-}
 
 type SplittingWriter struct {
 	AfterBytes       int

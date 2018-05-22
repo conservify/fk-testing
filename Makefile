@@ -8,9 +8,7 @@ all:
 	GOOS=linux GOARCH=amd64 make binaries-all
 	GOOS=linux GOARCH=arm make binaries-all
 
-install:
-	GOOS=linux GOARCH=amd64 make binaries-install
-	GOOS=linux GOARCH=arm make binaries-install
+install: all
 
 binaries-all: $(BUILDARCH)/fk-lan-sync $(BUILDARCH)/fk-log-analyzer $(BUILDARCH)/fk-data-tool $(BUILDARCH)/fk-wifi-tool
 
@@ -31,12 +29,6 @@ $(BUILDARCH)/fk-data-tool: data-tool/*.go utilities/*.go
 
 $(BUILDARCH)/fk-wifi-tool: wifi-tool/*.go utilities/*.go
 	$(GO) build -o $(BUILDARCH)/fk-wifi-tool wifi-tool/*.go
-
-binaries-install: all
-	cp $(BUILDARCH)/fk-lan-sync $(INSTALLDIR)
-	cp $(BUILDARCH)/fk-log-analyzer $(INSTALLDIR)
-	cp $(BUILDARCH)/fk-data-tool $(INSTALLDIR)
-	cp $(BUILDARCH)/fk-wifi-tool $(INSTALLDIR)
 
 clean:
 	rm -rf $(BUILD)

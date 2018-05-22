@@ -9,4 +9,5 @@ build/fktool --host api.fkdev.org --scheme https --device-id 0004a30b001d1c5e --
 build/fktool --host api.fkdev.org --scheme https --device-id 0004a30b001ca901 --device-name weather-1 --longitude -118.2688137 --latitude 34.0309388
 build/fktool --host api.fkdev.org --scheme https --device-id 0004a30b001cd2c5 --device-name weather-shah
 build/fktool --host api.fkdev.org --scheme https --device-id 0004a30b001cc71e --device-name fkn-congo
-build/fktool --host api.fkdev.org --scheme https --device-id 0004a30b001cc717 --device-name fk-nat-2  --longitude -118.2688137 --latitude 34.0309388
+build/fktool --host api.fkdev.org --scheme https --device-id 0004a30b001cc717 --device-name fk-nat-2 --longitude -118.2688137 --latitude 34.0309388
+build/fktool --host api.fkdev.org --scheme https --device-id 0004a30b001ce536 --device-name fkn-natgeo --longitude -118.2688137 --latitude 34.0309388

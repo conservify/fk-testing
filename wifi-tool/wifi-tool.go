@@ -4,8 +4,6 @@ import (
 	"encoding/hex"
 	"flag"
 	"fmt"
-	fkc "github.com/fieldkit/app-protocol/fkdevice"
-	fktestutils "github.com/fieldkit/testing/utilities"
 	"log"
 	"os"
 	"os/signal"
@@ -14,6 +12,9 @@ import (
 	"sync"
 	"syscall"
 	"time"
+
+	fkc "github.com/fieldkit/app-protocol/fkdevice"
+	fktestutils "github.com/fieldkit/testing/utilities"
 )
 
 type FileOwner struct {
@@ -46,6 +47,8 @@ type options struct {
 
 	UploadHost string
 	UploadData bool
+
+	Interval int
 
 	fileOwner *FileOwner
 }
@@ -106,6 +109,19 @@ func ConnectAndDownload(ip string, o *options) error {
 	return nil
 }
 
+func tryAndDownload(o *options) {
+	for retries := 5; retries >= 0; retries-- {
+		time.Sleep(2 * time.Second)
+
+		err := ConnectAndDownload(o.DeviceAddress, o)
+		if err != nil {
+			log.Printf("Error connecting and downloading: %v", err)
+		} else {
+			break
+		}
+	}
+}
+
 func main() {
 	o := options{}
 
@@ -119,6 +135,8 @@ func main() {
 
 	flag.StringVar(&o.UploadHost, "upload-host", "api.fkdev.org", "host to upload to")
 	flag.BoolVar(&o.UploadData, "upload-data", false, "upload data files after downloading")
+
+	flag.IntVar(&o.Interval, "interval", 300, "default interval")
 
 	flag.Parse()
 
@@ -148,6 +166,8 @@ func main() {
 			log.Fatalf("Error scanning Wifi: %v", err)
 		}
 	}
+
+	lastCheck := time.Time{}
 
 	networks := scan.ConfiguredNetworks()
 	if len(networks) > 0 {
@@ -205,22 +225,20 @@ func main() {
 					log.Printf("%v", err)
 				}
 
+				sinceCheck := time.Now().Sub(lastCheck)
+				beenTooLong := sinceCheck > (time.Duration(o.Interval) * time.Second)
+				statusChange := false
+
 				if state != nil && state.Connected != connected {
 					if state.Connected {
-						for retries := 5; retries >= 0; retries-- {
-							time.Sleep(2 * time.Second)
-
-							err = ConnectAndDownload(o.DeviceAddress, &o)
-							if err != nil {
-								log.Printf("Error connecting and downloading: %v", err)
-							} else {
-								break
-							}
-						}
+						statusChange = true
 					}
-
 					connected = state.Connected
+				}
 
+				if beenTooLong || statusChange {
+					tryAndDownload(&o)
+					lastCheck = time.Now()
 				}
 			}
 		}()

@@ -61,13 +61,15 @@ func DownloadDeviceFiles(dataDirectory string, deviceId string, dc *fkc.DeviceCl
 			bar.Finish()
 
 			if err != nil {
-				removeErr := os.Remove(fileName)
-				log.Printf("Deleting %s (%v)", fileName, removeErr)
+				log.Printf("Deleting incomplete file %s", fileName)
+				if removeErr := os.Remove(fileName); removeErr != nil {
+					log.Printf("Error deleting incomplete file: %v", removeErr)
+				}
 				return files, fmt.Errorf("Error: %v", err)
 			} else {
-				dc.EraseFile(file.Id)
+				_, err = dc.EraseFile(file.Id)
 				if err != nil {
-					return files, fmt.Errorf("Error: %v", err)
+					return files, fmt.Errorf("Error erasing device file: %v", err)
 				}
 			}
 		}

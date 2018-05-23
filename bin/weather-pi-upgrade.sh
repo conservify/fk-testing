@@ -17,6 +17,9 @@ make GOARCH=arm BUILD=$BUILD
 ssh weather-pi 'mkdir -p ~/tools/bin'
 popd
 
+mv $BUILD/linux-arm/* $BUILD/
+rmdir $BUILD/linux-arm
+
 pushd ~/fieldkit/testing
 rsync -zvua --progress bin/monitor.sh weather-pi:
 rsync -zvua --progress bin/run-tmux-weather.sh weather-pi:

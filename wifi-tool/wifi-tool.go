@@ -8,7 +8,6 @@ import (
 	"os"
 	"os/signal"
 	"strconv"
-	"strings"
 	"sync"
 	"syscall"
 	"time"
@@ -85,22 +84,24 @@ func ConnectAndDownload(ip string, o *options) error {
 
 	if o.UploadData {
 		for _, file := range files {
-			if strings.Contains(file, "DATA.BIN") {
-				for i := 0; i < 3; i += 1 {
-					log.Printf("Uploading %s...", file)
-					writer := fktestutils.NewStreamingWriter(o.UploadHost, false)
-					transformer := &fktestutils.TransformerChain{
-						Chain: []fktestutils.RecordTransformer{
-							&fktestutils.MetadataSaver{},
-							writer,
-						},
-					}
-					df := &fktestutils.DataFile{
-						Path:        file,
-						Transformer: transformer,
-					}
-					df.ReadData(file)
+			for i := 0; i < 3; i += 1 {
+				log.Printf("Uploading %s...", file)
+				writer := fktestutils.NewStreamingWriter(o.UploadHost, false)
+				transformer := &fktestutils.TransformerChain{
+					Chain: []fktestutils.RecordTransformer{
+						&fktestutils.MetadataSaver{},
+						writer,
+					},
+				}
+				df := &fktestutils.DataFile{
+					Path:        file,
+					Transformer: transformer,
+				}
+				if err := df.ReadData(file); err != nil {
+					log.Printf("Error: %v", err)
 					time.Sleep(5 * time.Second)
+				} else {
+					break
 				}
 			}
 		}

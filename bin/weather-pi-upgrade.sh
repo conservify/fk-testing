@@ -5,17 +5,18 @@ set -xe
 BUILD=/tmp/working/fk-build
 
 pushd ~/conservify/flasher
-make GOARCH=arm BUILD=$BUILD
+make GOARCH=arm BUILD=$BUILD binaries-all
 popd
 
 pushd ~/fieldkit/app-protocol
-make GOARCH=arm BUILD=$BUILD
+make GOARCH=arm BUILD=$BUILD binaries-all
 popd
 
 pushd ~/fieldkit/testing
-make GOARCH=arm BUILD=$BUILD
-ssh weather-pi 'mkdir -p ~/tools/bin'
+make GOARCH=arm BUILD=$BUILD binaries-all
 popd
+
+ssh weather-pi 'mkdir -p ~/tools/bin'
 
 mv $BUILD/linux-arm/* $BUILD/
 rmdir $BUILD/linux-arm

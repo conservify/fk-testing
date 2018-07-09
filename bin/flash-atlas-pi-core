@@ -6,7 +6,7 @@ pushd ~/fieldkit/firmware-common
 mkdir -p build
 pushd build
 cp ../core/config.h.conservify ../core/config.h
-cmake -DDEBUG_UART_FALLBACK=OFF -DDISABLE_RADIO=ON -DWIFI_ALWAYS_ON=ON ../ && make
+cmake -DCORE_GENERATION_2=OFF -DDEBUG_UART_FALLBACK=OFF -DDISABLE_RADIO=ON ../ && make
 scp fk-core.bin atlas-pi: && ssh atlas-pi "./flash-core"
 popd
 popd

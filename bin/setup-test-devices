@@ -3,15 +3,18 @@
 set -xe
 make
 
-build/fktool --host api.fkdev.org --scheme https --device-id cbb0e36b54324e5120204a37381f06ff --device-name nat-1 --longitude -118.2688137 --latitude 34.0309388
-build/fktool --host api.fkdev.org --scheme https --device-id 3856141154324e5120202037242c13ff --device-name nat-2 --longitude -118.2688137 --latitude 34.0309388
-build/fktool --host api.fkdev.org --scheme https --device-id 0004a30b001d1c5e --device-name atlas-1 --longitude -118.2688137 --latitude 34.0309388
-build/fktool --host api.fkdev.org --scheme https --device-id 0004a30b001ca901 --device-name weather-1 --longitude -118.2688137 --latitude 34.0309388
-build/fktool --host api.fkdev.org --scheme https --device-id 0004a30b001cd2c5 --device-name weather-shah
-build/fktool --host api.fkdev.org --scheme https --device-id 0004a30b001cc71e --device-name fkn-congo
-build/fktool --host api.fkdev.org --scheme https --device-id 0004a30b001cc717 --device-name fk-nat-2 --longitude -118.2688137 --latitude 34.0309388
-build/fktool --host api.fkdev.org --scheme https --device-id 0004a30b001ce536 --device-name fkn-natgeo --longitude -118.2688137 --latitude 34.0309388
-build/fktool --host api.fkdev.org --scheme https --device-id 0004a30b001c8d6e --device-name fkn-jacob --longitude -118.2688137 --latitude 34.0309388
-build/fktool --host api.fkdev.org --scheme https --device-id 0004a30b001ce3ce --device-name fkn-shah --longitude -118.2688137 --latitude 34.0309388
+HOST=127.0.0.1:8080
+SCHEME=http
+
+build/fktool --host $HOST --scheme $SCHEME --device-id cbb0e36b54324e5120204a37381f06ff --device-name nat-1 --longitude -118.2688137 --latitude 34.0309388
+build/fktool --host $HOST --scheme $SCHEME --device-id 3856141154324e5120202037242c13ff --device-name nat-2 --longitude -118.2688137 --latitude 34.0309388
+build/fktool --host $HOST --scheme $SCHEME --device-id 0004a30b001d1c5e --device-name atlas-1 --longitude -118.2688137 --latitude 34.0309388
+build/fktool --host $HOST --scheme $SCHEME --device-id 0004a30b001ca901 --device-name weather-1 --longitude -118.2688137 --latitude 34.0309388
+build/fktool --host $HOST --scheme $SCHEME --device-id 0004a30b001cd2c5 --device-name weather-shah
+build/fktool --host $HOST --scheme $SCHEME --device-id 0004a30b001cc71e --device-name fkn-congo
+build/fktool --host $HOST --scheme $SCHEME --device-id 0004a30b001cc717 --device-name fk-nat-2 --longitude -118.2688137 --latitude 34.0309388
+build/fktool --host $HOST --scheme $SCHEME --device-id 0004a30b001ce536 --device-name fkn-natgeo --longitude -118.2688137 --latitude 34.0309388
+build/fktool --host $HOST --scheme $SCHEME --device-id 0004a30b001c8d6e --device-name fkn-jacob --longitude -118.2688137 --latitude 34.0309388
+build/fktool --host $HOST --scheme $SCHEME --device-id 0004a30b001ce3ce --device-name fkn-shah --longitude -118.2688137 --latitude 34.0309388
 
 

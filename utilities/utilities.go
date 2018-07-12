@@ -53,7 +53,7 @@ func DownloadDeviceFiles(dataDirectory string, deviceId string, dc *fkc.DeviceCl
 
 			writer := io.MultiWriter(f, bar)
 
-			err = dc.DownloadFileToWriter(file.Id, 0, 0, writer)
+			err = dc.DownloadFileToWriter(file.Id, 0, 0, 0, writer)
 
 			bar.Set(int(file.Size))
 			bar.Finish()

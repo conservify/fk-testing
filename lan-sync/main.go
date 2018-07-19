@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"log"
 	"net"
+	"os/exec"
 	"sync"
 	"time"
 
@@ -20,9 +21,10 @@ type DiscoveredDevice struct {
 }
 
 type Device struct {
-	Id            uint32
-	Busy          bool
-	LastQueryTime time.Time
+	Id             uint32
+	Busy           bool
+	LastQueryTime  time.Time
+	LastNotifyTime time.Time
 }
 
 type Devices struct {
@@ -99,6 +101,24 @@ func (d *Devices) shouldQuery(id string) bool {
 	return true
 }
 
+func (d *Devices) shouldNotify(id string) bool {
+	if d.ById[id] == nil {
+		return true
+	}
+
+	device := d.ById[id]
+	if !device.LastNotifyTime.IsZero() {
+		if minutesSince(device.LastNotifyTime) < 3 {
+			return false
+		}
+	}
+
+	now := time.Now()
+	device.LastNotifyTime = now
+
+	return true
+}
+
 func (d *Devices) addDevice(id string) {
 	if d.ById[id] == nil {
 		d.ById[id] = &Device{}
@@ -107,6 +127,11 @@ func (d *Devices) addDevice(id string) {
 
 type options struct {
 	Download bool
+}
+
+func notify(title, text string) {
+	cmd := exec.Command("notify-send", title, text)
+	cmd.Run()
 }
 
 func main() {
@@ -159,7 +184,7 @@ func main() {
 					continue
 				}
 
-				log.Printf("Status: %v", statusReply.Status)
+				log.Printf("%s: %v", ip, statusReply.Status)
 
 				devices.addDevice(deviceId)
 				devices.markBusy(deviceId)
@@ -169,7 +194,11 @@ func main() {
 				}
 				devices.markAvailable(deviceId)
 			} else {
-				log.Printf("%v %v", discovered.Address.IP.String(), deviceId)
+				log.Printf("%v %v", ip, deviceId)
+			}
+
+			if devices.shouldNotify(deviceId) {
+				notify("fk-lan-sync", fmt.Sprintf("Device: %s", ip))
 			}
 		}
 	}

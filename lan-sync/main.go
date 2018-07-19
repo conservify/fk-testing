@@ -4,12 +4,13 @@ import (
 	"encoding/hex"
 	"flag"
 	"fmt"
-	fkc "github.com/fieldkit/app-protocol/fkdevice"
-	fktestutils "github.com/fieldkit/testing/utilities"
 	"log"
 	"net"
 	"sync"
 	"time"
+
+	fkc "github.com/fieldkit/app-protocol/fkdevice"
+	fktestutils "github.com/fieldkit/testing/utilities"
 )
 
 type DiscoveredDevice struct {
@@ -104,7 +105,15 @@ func (d *Devices) addDevice(id string) {
 	}
 }
 
+type options struct {
+	Download bool
+}
+
 func main() {
+	o := options{}
+
+	flag.BoolVar(&o.Download, "download", false, "downlaod files from devices")
+
 	flag.Parse()
 
 	log.Printf("Starting...")
@@ -130,19 +139,34 @@ func main() {
 					Port:    54321,
 				}
 
-				reply, err := dc.QueryCapabilities()
+				capabilitiesReply, err := dc.QueryCapabilities()
 				if err != nil {
 					log.Printf("Error: %v", err)
 					continue
 				}
-				if reply == nil || reply.Capabilities == nil {
+				if capabilitiesReply == nil || capabilitiesReply.Capabilities == nil {
 					log.Printf("Error: Bad reply")
 					continue
 				}
 
+				statusReply, err := dc.QueryStatus()
+				if err != nil {
+					log.Printf("Error: %v", err)
+					continue
+				}
+				if statusReply == nil || statusReply.Status == nil {
+					log.Printf("Error: Bad reply")
+					continue
+				}
+
+				log.Printf("Status: %v", statusReply.Status)
+
 				devices.addDevice(deviceId)
 				devices.markBusy(deviceId)
-				fktestutils.DownloadDeviceFiles("data", deviceId, dc)
+
+				if o.Download {
+					fktestutils.DownloadDeviceFiles("data", deviceId, dc)
+				}
 				devices.markAvailable(deviceId)
 			} else {
 				log.Printf("%v %v", discovered.Address.IP.String(), deviceId)

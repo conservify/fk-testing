@@ -4,5 +4,5 @@ set -xe
 
 pushd ~/fieldkit/atlas
 make
-scp build/fk-atlas-module.bin atlas-pi: && ssh atlas-pi "./flash-atlas"
+scp build/fk-atlas-standard.bin atlas-pi: && ssh atlas-pi "./flash-atlas"
 popd

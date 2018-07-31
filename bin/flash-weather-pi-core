@@ -6,7 +6,7 @@ pushd ~/fieldkit/firmware-common
 mkdir -p build
 pushd build
 cp ../core/config.h.shah ../core/config.h
-cmake -DFK_CORE_GENERATION_2=OFF -DFK_DEBUG_UART_FALLBACK=OFF -DFK_DEBUG_UART_REQUIRE_CONSOLE=ON -DFK_ENABLE_RADIO=OFF -DFK_PROFILE_AMAZON=ON -DFK_WIFI_ALWAYS_ON=OFF ../ && make
+cmake -DFK_CORE_GENERATION_2=OFF -DFK_DEBUG_UART_FALLBACK=OFF -DFK_DEBUG_UART_REQUIRE_CONSOLE=ON -DFK_ENABLE_RADIO=OFF -DFK_WIFI_ALWAYS_ON=OFF -DFK_BOOTLOADER_LARGE=OFF ../ && make
 cp ../core/config.h.conservify ../core/config.h
 scp fk-core.bin weather-pi: && ssh weather-pi "./flash-core"
 popd

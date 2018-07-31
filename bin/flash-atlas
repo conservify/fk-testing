@@ -1,6 +1,6 @@
 #!/bin/bash
 
 touch /tmp/flashing-atlas
-sudo ~/tools/bin/flasher --port ~/devices/atlas --binary fk-atlas-module.bin
+sudo ~/tools/bin/flasher --port ~/devices/atlas --binary fk-atlas-standard.bin
 sudo pkill -f "flasher.+atlas"
 rm /tmp/flashing-atlas

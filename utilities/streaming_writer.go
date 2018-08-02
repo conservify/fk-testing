@@ -55,8 +55,11 @@ func (w *StreamingWriter) End(df *DataFile, chain EndChainFunc) error {
 	}
 
 	req.Header.Add("Content-Type", "application/vnd.fk.data+binary")
+	req.Header.Add("Fk-UploadName", df.Path)
 	if w.async {
 		req.Header.Add("Fk-Processing", "async")
+	} else {
+		req.Header.Add("Fk-Processing", "sync")
 	}
 
 	cl := http.Client{}

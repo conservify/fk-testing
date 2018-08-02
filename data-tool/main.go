@@ -10,8 +10,8 @@ import (
 type options struct {
 	Csv             bool
 	PostJson        bool
-	PostStream      bool
 	Verbose         bool
+	PostStreamSync  bool
 	PostStreamAsync bool
 
 	Log bool
@@ -37,8 +37,8 @@ func main() {
 
 	flag.BoolVar(&o.Csv, "csv", false, "write csv")
 	flag.BoolVar(&o.PostJson, "post-json", false, "interpret and post json")
-	flag.BoolVar(&o.PostStream, "post-stream", false, "post binary stream directly")
-	flag.BoolVar(&o.PostStreamAsync, "post-stream-async", false, "post binary stream directly and process async")
+	flag.BoolVar(&o.PostStreamSync, "post-stream-sync", false, "post binary stream and process synchronously")
+	flag.BoolVar(&o.PostStreamAsync, "post-stream-async", false, "post binary stream and process asynchronously")
 	flag.BoolVar(&o.Verbose, "verbose", false, "increased verbosity")
 
 	flag.BoolVar(&o.Log, "log", false, "display log")
@@ -74,7 +74,7 @@ func main() {
 
 	if o.Csv {
 		chain = append(chain, &fktestutils.CsvDataWriter{})
-	} else if o.PostStream {
+	} else if o.PostStreamSync {
 		chain = append(chain, fktestutils.NewStreamingWriter(o.Host, false))
 	} else if o.PostStreamAsync {
 		chain = append(chain, fktestutils.NewStreamingWriter(o.Host, true))

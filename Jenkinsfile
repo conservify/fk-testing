@@ -1,7 +1,9 @@
 @Library('conservify') _
 
+conservifyProperties()
+
 timestamps {
     node () {
-        conservifyBuild(name: 'testing', repository: 'https://github.com/Conservify/fk-testing.git')
+        conservifyBuild(name: 'testing')
     }
 }

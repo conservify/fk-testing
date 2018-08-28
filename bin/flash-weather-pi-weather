@@ -3,6 +3,9 @@
 set -xe
 
 pushd ~/fieldkit/weather
-make
-scp build/fk-weather-module.bin weather-pi: && ssh weather-pi "./flash-weather"
+mkdir -p build
+pushd build
+cmake ../ && make clean && make
+scp firmware/module/fk-weather-module.bin weather-pi: && ssh weather-pi "./flash-weather"
+popd
 popd

@@ -8,6 +8,6 @@ pushd build
 cp ../core/config.h.conservify ../core/config.h
 cmake -DFK_CORE_GENERATION_2=OFF -DFK_DEBUG_UART_FALLBACK=OFF -DFK_DEBUG_UART_REQUIRE_CONSOLE=ON -DFK_ENABLE_RADIO=OFF -DFK_WIFI_ALWAYS_ON=OFF -DFK_BOOTLOADER_LARGE=OFF ../ && make
 cp ../core/config.h.conservify ../core/config.h
-scp fk-core.bin atlas-pi: && ssh atlas-pi "./flash-core"
+scp core/fk-core.bin atlas-pi: && ssh atlas-pi "./flash-core"
 popd
 popd

@@ -73,7 +73,9 @@ func main() {
 	}
 
 	if o.Csv {
-		chain = append(chain, &fktestutils.CsvDataWriter{})
+		chain = append(chain, &fktestutils.CsvDataWriter{
+			FormattedTimes: true,
+		})
 	} else if o.PostStreamSync {
 		chain = append(chain, fktestutils.NewStreamingWriter(o.Host, false))
 	} else if o.PostStreamAsync {

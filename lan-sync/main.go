@@ -165,6 +165,7 @@ func (d *Devices) query(ip, deviceId string, o *options) {
 type options struct {
 	Query    bool
 	Download bool
+	Notify   bool
 }
 
 func notify(title, text string) {
@@ -177,6 +178,7 @@ func main() {
 
 	flag.BoolVar(&o.Query, "query", false, "query devices")
 	flag.BoolVar(&o.Download, "download", false, "downlaod files from devices")
+	flag.BoolVar(&o.Notify, "notify", false, "Use notify-send")
 
 	flag.Parse()
 
@@ -203,7 +205,7 @@ func main() {
 				log.Printf("%v %v", ip, deviceId)
 			}
 
-			if devices.shouldNotify(deviceId) {
+			if o.Notify && devices.shouldNotify(deviceId) {
 				notify("fk-lan-sync", fmt.Sprintf("Device: %s", ip))
 			}
 		}

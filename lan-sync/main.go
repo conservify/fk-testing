@@ -125,7 +125,45 @@ func (d *Devices) addDevice(id string) {
 	}
 }
 
+func (d *Devices) query(ip, deviceId string, o *options) {
+	dc := &fkc.DeviceClient{
+		Address: ip,
+		Port:    54321,
+	}
+
+	capabilitiesReply, err := dc.QueryCapabilities()
+	if err != nil {
+		log.Printf("Error: %v", err)
+		return
+	}
+	if capabilitiesReply == nil || capabilitiesReply.Capabilities == nil {
+		log.Printf("Error: Bad reply")
+		return
+	}
+
+	statusReply, err := dc.QueryStatus()
+	if err != nil {
+		log.Printf("Error: %v", err)
+		return
+	}
+	if statusReply == nil || statusReply.Status == nil {
+		log.Printf("Error: Bad reply")
+		return
+	}
+
+	log.Printf("%s: %v", ip, statusReply.Status)
+
+	d.addDevice(deviceId)
+	d.markBusy(deviceId)
+
+	if o.Download {
+		fktestutils.DownloadDeviceFiles("data", deviceId, dc)
+	}
+	d.markAvailable(deviceId)
+}
+
 type options struct {
+	Query    bool
 	Download bool
 }
 
@@ -135,8 +173,9 @@ func notify(title, text string) {
 }
 
 func main() {
-	o := options{}
+	o := &options{}
 
+	flag.BoolVar(&o.Query, "query", false, "query devices")
 	flag.BoolVar(&o.Download, "download", false, "downlaod files from devices")
 
 	flag.Parse()
@@ -158,41 +197,8 @@ func main() {
 		age := minutesSince(discovered.Time)
 
 		if age < 1 {
-			if devices.shouldQuery(deviceId) {
-				dc := &fkc.DeviceClient{
-					Address: ip,
-					Port:    54321,
-				}
-
-				capabilitiesReply, err := dc.QueryCapabilities()
-				if err != nil {
-					log.Printf("Error: %v", err)
-					continue
-				}
-				if capabilitiesReply == nil || capabilitiesReply.Capabilities == nil {
-					log.Printf("Error: Bad reply")
-					continue
-				}
-
-				statusReply, err := dc.QueryStatus()
-				if err != nil {
-					log.Printf("Error: %v", err)
-					continue
-				}
-				if statusReply == nil || statusReply.Status == nil {
-					log.Printf("Error: Bad reply")
-					continue
-				}
-
-				log.Printf("%s: %v", ip, statusReply.Status)
-
-				devices.addDevice(deviceId)
-				devices.markBusy(deviceId)
-
-				if o.Download {
-					fktestutils.DownloadDeviceFiles("data", deviceId, dc)
-				}
-				devices.markAvailable(deviceId)
+			if o.Query && devices.shouldQuery(deviceId) {
+				devices.query(ip, deviceId, o)
 			} else {
 				log.Printf("%v %v", ip, deviceId)
 			}

@@ -74,20 +74,20 @@ func discoverDevicesOnLocalNetwork(d chan *DiscoveredDevice) {
 	}
 }
 
-func minutesSince(t time.Time) float64 {
+func secondsSince(t time.Time) float64 {
 	now := time.Now()
 	elapsed := now.Sub(t)
-	return elapsed.Minutes()
+	return elapsed.Seconds()
 }
 
-func (d *Devices) shouldQuery(id string) bool {
+func (d *Devices) shouldQuery(id string, interval float64) bool {
 	if d.ById[id] == nil {
 		return true
 	}
 
 	device := d.ById[id]
 	if !device.LastQueryTime.IsZero() {
-		if minutesSince(device.LastQueryTime) < 5 {
+		if secondsSince(device.LastQueryTime) < interval {
 			return false
 		}
 	}
@@ -108,7 +108,7 @@ func (d *Devices) shouldNotify(id string) bool {
 
 	device := d.ById[id]
 	if !device.LastNotifyTime.IsZero() {
-		if minutesSince(device.LastNotifyTime) < 3 {
+		if secondsSince(device.LastNotifyTime) < 3*60 {
 			return false
 		}
 	}
@@ -194,10 +194,10 @@ func main() {
 	for discovered := range discoveries {
 		ip := discovered.Address.IP.String()
 		deviceId := hex.EncodeToString(discovered.DeviceId)
-		age := minutesSince(discovered.Time)
+		age := secondsSince(discovered.Time)
 
-		if age < 1 {
-			if o.Query && devices.shouldQuery(deviceId) {
+		if age < 60 {
+			if o.Query && devices.shouldQuery(deviceId, 60) {
 				devices.query(ip, deviceId, o)
 			} else {
 				log.Printf("%v %v", ip, deviceId)

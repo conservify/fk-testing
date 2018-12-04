@@ -1,0 +1,212 @@
+EESchema Schematic File Version 4
+EELAYER 26 0
+EELAYER END
+$Descr A4 11693 8268
+encoding utf-8
+Sheet 1 1
+Title ""
+Date ""
+Rev ""
+Comp ""
+Comment1 ""
+Comment2 ""
+Comment3 ""
+Comment4 ""
+$EndDescr
+$Comp
+L conservify:CONN_01x05 J1
+U 1 1 5C06F0DF
+P 850 1100
+F 0 "J1" H 770 675 50  0000 C CNN
+F 1 "CONN_01x05" H 770 766 50  0000 C CNN
+F 2 "conservify:Molex_CLIK-Mate_502382-0570_1x05_P1.25mm_Vertical" H 850 1100 50  0001 C CNN
+F 3 "" H 850 1100 50  0001 C CNN
+	1    850  1100
+	-1   0    0    1   
+$EndComp
+$Comp
+L conservify:CONN_01x05 J2
+U 1 1 5C06F1D3
+P 850 1850
+F 0 "J2" H 770 1425 50  0000 C CNN
+F 1 "CONN_01x05" H 770 1516 50  0000 C CNN
+F 2 "conservify:Molex_CLIK-Mate_502382-0570_1x05_P1.25mm_Vertical" H 850 1850 50  0001 C CNN
+F 3 "" H 850 1850 50  0001 C CNN
+	1    850  1850
+	-1   0    0    1   
+$EndComp
+$Comp
+L conservify:CONN_01x05 J3
+U 1 1 5C06F24D
+P 850 2600
+F 0 "J3" H 770 2175 50  0000 C CNN
+F 1 "CONN_01x05" H 770 2266 50  0000 C CNN
+F 2 "conservify:Socket_Strip_Straight_1x05_Pitch2.54mm" H 850 2600 50  0001 C CNN
+F 3 "" H 850 2600 50  0001 C CNN
+	1    850  2600
+	-1   0    0    1   
+$EndComp
+Text Label 1100 900  0    50   ~ 0
+SDA
+Text Label 1100 1000 0    50   ~ 0
+SCL
+Text Label 1100 1750 0    50   ~ 0
+SCL
+Text Label 1100 1650 0    50   ~ 0
+SDA
+Text Label 1100 2400 0    50   ~ 0
+SDA
+Text Label 1100 2500 0    50   ~ 0
+SCL
+Text Label 1100 1100 0    50   ~ 0
+VIN
+Text Label 1100 1850 0    50   ~ 0
+VIN
+Text Label 1100 2600 0    50   ~ 0
+VIN
+$Comp
+L conservify:GND #PWR0101
+U 1 1 5C06F4B2
+P 1350 1200
+F 0 "#PWR0101" H 1350 950 50  0001 C CNN
+F 1 "GND" H 1350 1050 50  0001 C CNN
+F 2 "" H 1350 1200 60  0000 C CNN
+F 3 "" H 1350 1200 60  0000 C CNN
+	1    1350 1200
+	0    -1   -1   0   
+$EndComp
+$Comp
+L conservify:GND #PWR0102
+U 1 1 5C06F4D6
+P 1300 1950
+F 0 "#PWR0102" H 1300 1700 50  0001 C CNN
+F 1 "GND" H 1300 1800 50  0001 C CNN
+F 2 "" H 1300 1950 60  0000 C CNN
+F 3 "" H 1300 1950 60  0000 C CNN
+	1    1300 1950
+	0    -1   -1   0   
+$EndComp
+$Comp
+L conservify:GND #PWR0103
+U 1 1 5C06F4E7
+P 1300 2700
+F 0 "#PWR0103" H 1300 2450 50  0001 C CNN
+F 1 "GND" H 1300 2550 50  0001 C CNN
+F 2 "" H 1300 2700 60  0000 C CNN
+F 3 "" H 1300 2700 60  0000 C CNN
+	1    1300 2700
+	0    -1   -1   0   
+$EndComp
+$Comp
+L conservify:3V3 #PWR0104
+U 1 1 5C06F512
+P 1300 2800
+F 0 "#PWR0104" H 1300 2650 50  0001 C CNN
+F 1 "3V3" V 1305 2928 50  0000 L CNN
+F 2 "" H 1300 2800 60  0000 C CNN
+F 3 "" H 1300 2800 60  0000 C CNN
+	1    1300 2800
+	0    1    1    0   
+$EndComp
+$Comp
+L conservify:3V3 #PWR0105
+U 1 1 5C06F53C
+P 1300 2050
+F 0 "#PWR0105" H 1300 1900 50  0001 C CNN
+F 1 "3V3" V 1305 2178 50  0000 L CNN
+F 2 "" H 1300 2050 60  0000 C CNN
+F 3 "" H 1300 2050 60  0000 C CNN
+	1    1300 2050
+	0    1    1    0   
+$EndComp
+$Comp
+L conservify:3V3 #PWR0106
+U 1 1 5C06F628
+P 1350 1300
+F 0 "#PWR0106" H 1350 1150 50  0001 C CNN
+F 1 "3V3" V 1355 1428 50  0000 L CNN
+F 2 "" H 1350 1300 60  0000 C CNN
+F 3 "" H 1350 1300 60  0000 C CNN
+	1    1350 1300
+	0    1    1    0   
+$EndComp
+Wire Wire Line
+	1050 900  1350 900 
+Wire Wire Line
+	1350 1000 1050 1000
+Wire Wire Line
+	1350 1100 1050 1100
+Wire Wire Line
+	1050 1200 1350 1200
+Wire Wire Line
+	1350 1300 1050 1300
+Wire Wire Line
+	1050 1650 1300 1650
+Wire Wire Line
+	1300 1750 1050 1750
+Wire Wire Line
+	1050 1850 1300 1850
+Wire Wire Line
+	1300 1950 1050 1950
+Wire Wire Line
+	1050 2050 1300 2050
+Wire Wire Line
+	1300 2400 1050 2400
+Wire Wire Line
+	1300 2500 1050 2500
+Wire Wire Line
+	1300 2600 1050 2600
+Wire Wire Line
+	1300 2700 1050 2700
+Wire Wire Line
+	1050 2800 1300 2800
+$Comp
+L conservify:CONN_01x05 J4
+U 1 1 5C070390
+P 850 3350
+F 0 "J4" H 770 2925 50  0000 C CNN
+F 1 "CONN_01x05" H 770 3016 50  0000 C CNN
+F 2 "conservify:Socket_Strip_Straight_1x05_Pitch2.54mm" H 850 3350 50  0001 C CNN
+F 3 "" H 850 3350 50  0001 C CNN
+	1    850  3350
+	-1   0    0    1   
+$EndComp
+Text Label 1100 3150 0    50   ~ 0
+SDA
+Text Label 1100 3250 0    50   ~ 0
+SCL
+Text Label 1100 3350 0    50   ~ 0
+VIN
+$Comp
+L conservify:GND #PWR0107
+U 1 1 5C070399
+P 1300 3450
+F 0 "#PWR0107" H 1300 3200 50  0001 C CNN
+F 1 "GND" H 1300 3300 50  0001 C CNN
+F 2 "" H 1300 3450 60  0000 C CNN
+F 3 "" H 1300 3450 60  0000 C CNN
+	1    1300 3450
+	0    -1   -1   0   
+$EndComp
+$Comp
+L conservify:3V3 #PWR0108
+U 1 1 5C07039F
+P 1300 3550
+F 0 "#PWR0108" H 1300 3400 50  0001 C CNN
+F 1 "3V3" V 1305 3678 50  0000 L CNN
+F 2 "" H 1300 3550 60  0000 C CNN
+F 3 "" H 1300 3550 60  0000 C CNN
+	1    1300 3550
+	0    1    1    0   
+$EndComp
+Wire Wire Line
+	1300 3150 1050 3150
+Wire Wire Line
+	1300 3250 1050 3250
+Wire Wire Line
+	1300 3350 1050 3350
+Wire Wire Line
+	1300 3450 1050 3450
+Wire Wire Line
+	1050 3550 1300 3550
+$EndSCHEMATC

@@ -5,9 +5,9 @@ BUILD ?= build
 BUILDARCH ?= $(BUILD)/$(GOOS)-$(GOARCH)
 
 all:
-	GOOS=linux GOARCH=amd64 make binaries-all
-	GOOS=linux GOARCH=arm make binaries-all
-	GOOS=darwin GOARCH=amd64 make binaries-all
+	GOOS=linux GOARCH=amd64 $(MAKE) binaries-all
+	GOOS=linux GOARCH=arm $(MAKE) binaries-all
+	GOOS=darwin GOARCH=amd64 $(MAKE) binaries-all
 
 install: all
 

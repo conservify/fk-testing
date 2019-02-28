@@ -79,6 +79,9 @@ func (df *DataFile) ReadData(path string) error {
 			return fmt.Errorf("Decode error: %v", err)
 		}
 
+		temp := proto.EncodeVarint(uint64(len(messageBytes)))
+		position += len(temp)
+
 		df.NumberOfRecords += 1
 
 		record, err := df.Unmarshal(messageBytes)
@@ -95,8 +98,7 @@ func (df *DataFile) ReadData(path string) error {
 			}
 		}
 
-		temp := proto.EncodeVarint(uint64(len(messageBytes)))
-		position += len(messageBytes) + len(temp)
+		position += len(messageBytes)
 	}
 
 	err = df.Transformer.End(df, lastEnd)

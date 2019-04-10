@@ -58,7 +58,7 @@ type StatusEvent struct {
 	Bound     bool
 }
 
-func ConnectAndDownload(ip string, o *options) error {
+func connectAndDownload(ip string, o *options) error {
 	dc := &fkc.DeviceClient{
 		Address: ip,
 		Port:    54321,
@@ -110,17 +110,39 @@ func ConnectAndDownload(ip string, o *options) error {
 	return nil
 }
 
-func tryAndDownload(o *options) {
+func tryAndDownload(o *options) error {
 	for retries := 5; retries >= 0; retries-- {
 		time.Sleep(2 * time.Second)
 
-		err := ConnectAndDownload(o.DeviceAddress, o)
+		err := connectAndDownload(o.DeviceAddress, o)
 		if err != nil {
 			log.Printf("Error connecting and downloading: %v", err)
 		} else {
 			break
 		}
 	}
+
+	return nil
+}
+
+func queryStatus(o *options) error {
+	for retries := 5; retries >= 0; retries-- {
+		time.Sleep(2 * time.Second)
+
+	}
+	dc := &fkc.DeviceClient{
+		Address: o.DeviceAddress,
+		Port:    54321,
+	}
+
+	status, err := dc.QueryStatus()
+	if err != nil {
+		return fmt.Errorf("Unable to get capabilities: %v", err)
+	}
+
+	log.Printf("Status: %v", status)
+
+	return nil
 }
 
 func main() {
@@ -250,6 +272,8 @@ func main() {
 				if beenTooLong || statusChange {
 					if false {
 						tryAndDownload(&o)
+					} else {
+						queryStatus(&o)
 					}
 					lastCheck = time.Now()
 				}

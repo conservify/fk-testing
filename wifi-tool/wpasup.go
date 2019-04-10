@@ -39,7 +39,7 @@ func NewWpaSupplicantRunner(device string, networks []*WifiNetwork) (wsr *WpaSup
 
 	log.Printf("Executing %s", strings.Join(argv, " "))
 
-	bp, err := NewBackgroundProcess("WPA  | ", argv, wsr)
+	bp, err := NewBackgroundProcess("WPA  | ", argv, false, wsr)
 	if err != nil {
 		return
 	}

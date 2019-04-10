@@ -206,6 +206,16 @@ func main() {
 			waiting = append(waiting, wsr)
 			waiting = append(waiting, dcr)
 
+			if true {
+				tdr, err := NewTcpDumpRunner(o.Device)
+				if err != nil {
+					log.Fatalf("Error: %v", err)
+				}
+
+				tdr.Start()
+
+				waiting = append(waiting, tdr)
+			}
 		}
 
 		wcr, err := NewWpaCliRunner(o.Device, o.WpaSocket)

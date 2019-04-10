@@ -130,7 +130,7 @@ func main() {
 	flag.StringVar(&o.DataDirectory, "data-directory", "./data", "data directory to use")
 	flag.StringVar(&o.WpaSocket, "wpa-socket", "", "wpa socket to use")
 	flag.StringVar(&o.Network, "network", "", "network")
-	flag.StringVar(&o.DeviceAddress, "device-address", "192.168.1.1", "network")
+	flag.StringVar(&o.DeviceAddress, "device-address", "192.168.2.1", "network")
 
 	flag.BoolVar(&o.StartWpa, "start-wpa", false, "start wpa ourselves")
 
@@ -223,7 +223,7 @@ func main() {
 
 				state, err := wcr.Check()
 				if err != nil {
-					log.Printf("%v", err)
+					log.Printf("Error (from Check): %v", err)
 				}
 
 				sinceCheck := time.Now().Sub(lastCheck)
@@ -238,7 +238,9 @@ func main() {
 				}
 
 				if beenTooLong || statusChange {
-					tryAndDownload(&o)
+					if false {
+						tryAndDownload(&o)
+					}
 					lastCheck = time.Now()
 				}
 			}

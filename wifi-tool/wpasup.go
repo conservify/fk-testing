@@ -3,7 +3,7 @@ package main
 import (
 	"bufio"
 	"fmt"
-	_ "log"
+	"log"
 	"os"
 	"os/exec"
 	"regexp"
@@ -35,8 +35,11 @@ func NewWpaSupplicantRunner(device string, networks []*WifiNetwork) (wsr *WpaSup
 		Networks: networks,
 	}
 
-	line := []string{"wpa_supplicant", "-D", "wext", "-i", device, "-c", "./wpa_supplicant.conf"}
-	bp, err := NewBackgroundProcess("WPA  | ", line, wsr)
+	argv := []string{"wpa_supplicant", "-D", "wext", "-i", device, "-c", "./wpa_supplicant.conf"}
+
+	log.Printf("Executing %s", strings.Join(argv, " "))
+
+	bp, err := NewBackgroundProcess("WPA  | ", argv, wsr)
 	if err != nil {
 		return
 	}
@@ -100,10 +103,18 @@ func NewWpaCliRunner(device string, wpaSocket string) (wcr *WpaCliRunner, err er
 }
 
 func (wcr *WpaCliRunner) Check() (state *CurrentWifiState, err error) {
-	c := exec.Command("wpa_cli", "-p", wcr.WpaSocket, "-i", wcr.Device, "status")
+	argv := []string{
+		"wpa_cli", "-p", wcr.WpaSocket, "-i", wcr.Device, "status",
+	}
+
+	if false {
+		log.Printf("Executing %s", strings.Join(argv, " "))
+	}
+
+	c := exec.Command(argv[0], argv[1:]...)
 	bytes, err := c.Output()
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("Command '%s' failed: %v", strings.Join(argv, " "), err)
 	}
 
 	linesRe := regexp.MustCompile("(\\S+)=(\\S+)")

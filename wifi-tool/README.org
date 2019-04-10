@@ -1,0 +1,8 @@
+* Setup
+** Example command line:
+
+   (cd .. && make) && sudo ../build/linux-amd64/fk-wifi-tool --device wlxd47bb00e7cab --start-wpa --network FK-AASjCwAi7vA --wpa-socket /run/wpa_supplicant_fk
+
+** Update /etc/apparmor.d/sbin.dhclient so that our custom hook can be run.
+
+** Make sure no other wpa_supplicant's are running.

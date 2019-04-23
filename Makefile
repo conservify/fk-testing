@@ -1,7 +1,7 @@
 GOARCH ?= amd64
 GOOS ?= linux
 GO ?= env GOOS=$(GOOS) GOARCH=$(GOARCH) go
-BUILD ?= build
+BUILD ?= $(abspath build)
 BUILDARCH ?= $(BUILD)/$(GOOS)-$(GOARCH)
 
 all:

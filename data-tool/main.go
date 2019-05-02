@@ -113,5 +113,5 @@ func main() {
 		}
 	}
 
-	log.Printf("Done (%d records)", df.NumberOfRecords)
+	log.Printf("Done (%d records) (%d bytes)", df.NumberOfRecords, df.BytesRead)
 }

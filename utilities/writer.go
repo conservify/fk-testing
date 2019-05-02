@@ -15,8 +15,9 @@ type DataFile struct {
 	Path            string
 	Verbose         bool
 	Transformer     RecordTransformer
-	NumberOfRecords int
 	LastMetadata    *pb.DataRecord
+	NumberOfRecords int
+	BytesRead       int
 }
 
 func (df *DataFile) Unmarshal(raw []byte) (record *pb.DataRecord, err error) {
@@ -44,6 +45,8 @@ func (df *DataFile) ReadData(path string) error {
 	if err != nil {
 		return fmt.Errorf("Error opening file: %v", err)
 	}
+
+	log.Printf("Opened %s (%d bytes)", path, len(data))
 
 	df.Path = path
 
@@ -74,15 +77,26 @@ func (df *DataFile) ReadData(path string) error {
 		if err != nil {
 			if err == io.ErrUnexpectedEOF {
 				err = nil
+
+				if position < len(data) {
+					tempBuffer := proto.NewBuffer(data[position:])
+					expected, err := tempBuffer.DecodeVarint()
+					if err != nil {
+						return fmt.Errorf("Error getting final message length: %v", err)
+					}
+					log.Printf("Unexpected EOF: position = %d message = %d actual = %d", position, expected, len(data)-position)
+				}
+
 				break
 			}
-			return fmt.Errorf("Decode error: %v", err)
+			return fmt.Errorf("Error: %v", err)
 		}
 
 		temp := proto.EncodeVarint(uint64(len(messageBytes)))
 		lengthWithPrefix := len(messageBytes) + len(temp)
 
 		df.NumberOfRecords += 1
+		df.BytesRead += lengthWithPrefix
 
 		record, err := df.Unmarshal(messageBytes)
 		if err != nil {
@@ -94,6 +108,7 @@ func (df *DataFile) ReadData(path string) error {
 
 			err = df.Transformer.Process(df, record, lastBegin, lastProcess, lastEnd)
 			if err != nil {
+				log.Printf("Error")
 				return err
 			}
 		}
@@ -124,7 +139,7 @@ func (w *NullWriter) Process(df *DataFile, record *pb.DataRecord, begin BeginCha
 }
 
 func (w *NullWriter) End(df *DataFile, chain EndChainFunc) error {
-	log.Printf("(NullWriter) End, processed = %d", w.Processed)
+	log.Printf("(NullWriter) End, records = %d", w.Processed)
 	return chain(df)
 }
 

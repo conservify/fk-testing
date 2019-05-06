@@ -143,6 +143,16 @@ func (w *NullWriter) End(df *DataFile, chain EndChainFunc) error {
 	return chain(df)
 }
 
+var (
+	LogLevelNames = map[uint32]string{
+		0: "TRACE",
+		1: "DEBUG",
+		2: "INFO",
+		3: "WARN",
+		4: "ERROR",
+	}
+)
+
 type LogWriter struct {
 	Processed int
 }
@@ -151,9 +161,11 @@ func (w *LogWriter) Begin(df *DataFile, chain BeginChainFunc) error {
 	return chain(df)
 }
 
+const ()
+
 func (w *LogWriter) Process(df *DataFile, record *pb.DataRecord, begin BeginChainFunc, chain ProcessChainFunc, end EndChainFunc) error {
 	if record.Log != nil {
-		fmt.Printf("%-10d %-30s %s\n", record.Log.Uptime, record.Log.Facility, record.Log.Message)
+		fmt.Printf("%-10d %8s %-30s %s\n", record.Log.Uptime, LogLevelNames[record.Log.Level], record.Log.Facility, record.Log.Message)
 	}
 	return chain(df, record)
 }

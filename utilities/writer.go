@@ -165,7 +165,7 @@ const ()
 
 func (w *LogWriter) Process(df *DataFile, record *pb.DataRecord, begin BeginChainFunc, chain ProcessChainFunc, end EndChainFunc) error {
 	if record.Log != nil {
-		fmt.Printf("%-10d %8s %-30s %s\n", record.Log.Uptime, LogLevelNames[record.Log.Level], record.Log.Facility, record.Log.Message)
+		fmt.Printf("%-10d %-10d %8s %-30s %s\n", record.Log.Uptime, record.Log.Time, LogLevelNames[record.Log.Level], record.Log.Facility, record.Log.Message)
 	}
 	return chain(df, record)
 }

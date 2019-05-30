@@ -12,8 +12,8 @@ import (
 	"syscall"
 	"time"
 
+	fktestutils "github.com/conservify/fk-testing/utilities"
 	fkc "github.com/fieldkit/app-protocol/fkdevice"
-	fktestutils "github.com/fieldkit/testing/utilities"
 )
 
 type FileOwner struct {

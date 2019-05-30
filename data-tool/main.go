@@ -4,7 +4,7 @@ import (
 	"flag"
 	"log"
 
-	fktestutils "github.com/fieldkit/testing/utilities"
+	fktestutils "github.com/conservify/fk-testing/utilities"
 )
 
 type options struct {

@@ -19,6 +19,10 @@ $(BUILD):
 $(BUILDARCH):
 	mkdir -p $(BUILDARCH)
 
+rebuild:
+	go get -u github.com/fieldkit/data-protocol
+	go get -u github.com/fieldkit/app-protocol
+
 $(BUILDARCH)/fk-lan-sync: lan-sync/*.go utilities/*.go
 	$(GO) build -o $(BUILDARCH)/fk-lan-sync lan-sync/*.go
 

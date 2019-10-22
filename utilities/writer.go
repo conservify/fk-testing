@@ -5,6 +5,7 @@ import (
 	"io"
 	"io/ioutil"
 	"log"
+	"time"
 
 	"github.com/golang/protobuf/proto"
 
@@ -72,6 +73,8 @@ func (df *DataFile) ReadData(path string) error {
 
 	buf := proto.NewBuffer(data[:])
 
+	var previous *pb.DataRecord
+
 	for {
 		messageBytes, err := buf.DecodeRawBytes(true)
 		if err != nil {
@@ -103,7 +106,21 @@ func (df *DataFile) ReadData(path string) error {
 			log.Printf("(%d) Unable to unmarshal from file: %v (%d bytes)", position, err, lengthWithPrefix)
 		} else {
 			if df.Verbose {
-				log.Printf("(%d) %+v", position, record)
+				if false {
+					log.Printf("(%d) %+v", position, record)
+				}
+
+				if previous != nil {
+					if previous.Readings.Reading != record.Readings.Reading-1 {
+						panic("Weird record number")
+					}
+					elapsed := int64(record.Readings.Time) - int64(previous.Readings.Time)
+					if 30-elapsed > 10 || 30-elapsed < -10 {
+						previousTime := time.Unix(int64(previous.Readings.Time), 0)
+						currentTime := time.Unix(int64(record.Readings.Time), 0)
+						log.Printf("%s - %s = %d", previousTime, currentTime, elapsed)
+					}
+				}
 			}
 
 			err = df.Transformer.Process(df, record, lastBegin, lastProcess, lastEnd)
@@ -111,6 +128,8 @@ func (df *DataFile) ReadData(path string) error {
 				log.Printf("Error")
 				return err
 			}
+
+			previous = record
 		}
 
 		position += lengthWithPrefix

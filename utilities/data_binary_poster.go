@@ -68,7 +68,7 @@ func (dbpw *DataBinaryToPostWriter) Process(df *DataFile, record *pb.DataRecord,
 		if record.Metadata.Sensors != nil {
 			if dbpw.numberOfSensors == 0 {
 				for _, sensor := range record.Metadata.Sensors {
-					dbpw.sensors[sensor.Sensor] = sensor
+					dbpw.sensors[sensor.Number] = sensor
 					dbpw.numberOfSensors += 1
 				}
 				log.Printf("Found %d sensors", dbpw.numberOfSensors)

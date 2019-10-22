@@ -1,7 +1,7 @@
 package main
 
 import (
-	"encoding/hex"
+	_ "encoding/hex"
 	"flag"
 	"fmt"
 	"log"
@@ -12,7 +12,7 @@ import (
 	"syscall"
 	"time"
 
-	fktestutils "github.com/conservify/fk-testing/utilities"
+	// fktestutils "github.com/conservify/fk-testing/utilities"
 	fkc "github.com/fieldkit/app-protocol/fkdevice"
 )
 
@@ -59,53 +59,55 @@ type StatusEvent struct {
 }
 
 func connectAndDownload(ip string, o *options) error {
-	dc := &fkc.DeviceClient{
-		Address: ip,
-		Port:    54321,
-	}
-
-	caps, err := dc.QueryCapabilities()
-	if err != nil {
-		return fmt.Errorf("Unable to get capabilities: %v", err)
-	}
-
-	deviceId := hex.EncodeToString(caps.Capabilities.DeviceId)
-
-	files, err := fktestutils.DownloadDeviceFiles(o.DataDirectory, deviceId, dc)
-	if err != nil {
-		return fmt.Errorf("Unable to download: %v", err)
-	}
-
-	if o.fileOwner != nil {
-		for _, file := range files {
-			os.Chown(file, o.fileOwner.Uid, o.fileOwner.Gid)
+	/*
+		dc := &fkc.DeviceClient{
+			Address: ip,
+			Port:    54321,
 		}
-	}
 
-	if o.UploadData {
-		for _, file := range files {
-			for i := 0; i < 3; i += 1 {
-				log.Printf("Uploading %s...", file)
-				writer := fktestutils.NewStreamingWriter(o.UploadHost, false)
-				transformer := &fktestutils.TransformerChain{
-					Chain: []fktestutils.RecordTransformer{
-						&fktestutils.MetadataSaver{},
-						writer,
-					},
-				}
-				df := &fktestutils.DataFile{
-					Path:        file,
-					Transformer: transformer,
-				}
-				if err := df.ReadData(file); err != nil {
-					log.Printf("Error: %v", err)
-					time.Sleep(5 * time.Second)
-				} else {
-					break
+		caps, err := dc.QueryCapabilities()
+		if err != nil {
+			return fmt.Errorf("Unable to get capabilities: %v", err)
+		}
+
+		deviceId := hex.EncodeToString(caps.Capabilities.DeviceId)
+
+		files, err := fktestutils.DownloadDeviceFiles(o.DataDirectory, deviceId, dc)
+		if err != nil {
+			return fmt.Errorf("Unable to download: %v", err)
+		}
+
+		if o.fileOwner != nil {
+			for _, file := range files {
+				os.Chown(file, o.fileOwner.Uid, o.fileOwner.Gid)
+			}
+		}
+
+		if o.UploadData {
+			for _, file := range files {
+				for i := 0; i < 3; i += 1 {
+					log.Printf("Uploading %s...", file)
+					writer := fktestutils.NewStreamingWriter(o.UploadHost, false)
+					transformer := &fktestutils.TransformerChain{
+						Chain: []fktestutils.RecordTransformer{
+							&fktestutils.MetadataSaver{},
+							writer,
+						},
+					}
+					df := &fktestutils.DataFile{
+						Path:        file,
+						Transformer: transformer,
+					}
+					if err := df.ReadData(file); err != nil {
+						log.Printf("Error: %v", err)
+						time.Sleep(5 * time.Second)
+					} else {
+						break
+					}
 				}
 			}
 		}
-	}
+	*/
 
 	return nil
 }

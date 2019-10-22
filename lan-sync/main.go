@@ -9,9 +9,8 @@ import (
 	"os/exec"
 	"sync"
 	"time"
-
-	fktestutils "github.com/conservify/fk-testing/utilities"
-	fkc "github.com/fieldkit/app-protocol/fkdevice"
+	// fktestutils "github.com/conservify/fk-testing/utilities"
+	// fkc "github.com/fieldkit/app-protocol/fkdevice"
 )
 
 type DiscoveredDevice struct {
@@ -126,40 +125,42 @@ func (d *Devices) addDevice(id string) {
 }
 
 func (d *Devices) query(ip, deviceId string, o *options) {
-	dc := &fkc.DeviceClient{
-		Address: ip,
-		Port:    54321,
-	}
+	/*
+		dc := &fkc.DeviceClient{
+			Address: ip,
+			Port:    54321,
+		}
 
-	capabilitiesReply, err := dc.QueryCapabilities()
-	if err != nil {
-		log.Printf("Error: %v", err)
-		return
-	}
-	if capabilitiesReply == nil || capabilitiesReply.Capabilities == nil {
-		log.Printf("Error: Bad reply")
-		return
-	}
+			capabilitiesReply, err := dc.QueryCapabilities()
+			if err != nil {
+				log.Printf("Error: %v", err)
+				return
+			}
+			if capabilitiesReply == nil || capabilitiesReply.Capabilities == nil {
+				log.Printf("Error: Bad reply")
+				return
+			}
 
-	statusReply, err := dc.QueryStatus()
-	if err != nil {
-		log.Printf("Error: %v", err)
-		return
-	}
-	if statusReply == nil || statusReply.Status == nil {
-		log.Printf("Error: Bad reply")
-		return
-	}
+			statusReply, err := dc.QueryStatus()
+			if err != nil {
+				log.Printf("Error: %v", err)
+				return
+			}
+			if statusReply == nil || statusReply.Status == nil {
+				log.Printf("Error: Bad reply")
+				return
+			}
 
-	log.Printf("%s: %v", ip, statusReply.Status)
+			log.Printf("%s: %v", ip, statusReply.Status)
 
-	d.addDevice(deviceId)
-	d.markBusy(deviceId)
+			d.addDevice(deviceId)
+			d.markBusy(deviceId)
 
-	if o.Download {
-		fktestutils.DownloadDeviceFiles("data", deviceId, dc)
-	}
-	d.markAvailable(deviceId)
+			if o.Download {
+				fktestutils.DownloadDeviceFiles("data", deviceId, dc)
+			}
+			d.markAvailable(deviceId)
+	*/
 }
 
 type options struct {

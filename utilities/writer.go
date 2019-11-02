@@ -112,13 +112,21 @@ func (df *DataFile) ReadData(path string) error {
 
 				if previous != nil {
 					if previous.Readings.Reading != record.Readings.Reading-1 {
-						panic("Weird record number")
+						panic("weird record number jump")
 					}
 					elapsed := int64(record.Readings.Time) - int64(previous.Readings.Time)
-					if 30-elapsed > 10 || 30-elapsed < -10 {
+					if true || 30-elapsed > 10 || 30-elapsed < -10 {
+						// locationTime := time.Unix(int64(previous.Readings.Location.Time), 0)
 						previousTime := time.Unix(int64(previous.Readings.Time), 0)
 						currentTime := time.Unix(int64(record.Readings.Time), 0)
-						log.Printf("%s - %s = %d", previousTime, currentTime, elapsed)
+						// log.Printf("(%d) %+v", position, record)
+						log.Printf("(%d) #%d %s - #%d %s = %d",
+							record.Readings.Reading-previous.Readings.Reading,
+							previous.Readings.Reading,
+							previousTime,
+							record.Readings.Reading,
+							currentTime,
+							elapsed)
 					}
 				}
 			}
